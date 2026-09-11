@@ -1,0 +1,870 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Q2 gRPC Tutor — Ballerina Workbench</title>
+<style>
+:root {
+  --bg: #0d1117;
+  --surface: #161b22;
+  --surface2: #1c2128;
+  --border: #30363d;
+  --ink: #e6edf3;
+  --muted: #8b949e;
+  --accent: #d29922;
+  --accent-dim: #d2992233;
+  --ok: #3fb950;
+  --err: #f85149;
+  --info: #58a6ff;
+  --mono: "JetBrains Mono", "Fira Code", "Cascadia Code", Consolas, monospace;
+  --sans: -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--sans);
+  font-size: 14px;
+  height: 100vh;
+  display: grid;
+  grid-template-rows: auto 1fr;
+  overflow: hidden;
+}
+
+header {
+  padding: 10px 20px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  background: var(--surface);
+}
+header h1 { font-size: 15px; font-weight: 600; }
+header .phase-ind {
+  font-family: var(--mono);
+  font-size: 12px;
+  color: var(--muted);
+  margin-left: auto;
+}
+header .phase-ind b { color: var(--accent); }
+
+.main {
+  display: grid;
+  grid-template-columns: 340px 1fr 380px;
+  overflow: hidden;
+}
+
+/* ── Left: lesson nav + content ── */
+.lessons {
+  border-right: 1px solid var(--border);
+  overflow-y: auto;
+  background: var(--surface);
+}
+.lessons nav { padding: 12px 0; border-bottom: 1px solid var(--border); }
+.lessons nav button {
+  display: block;
+  width: 100%;
+  text-align: left;
+  background: none;
+  border: none;
+  color: var(--muted);
+  padding: 8px 20px;
+  cursor: pointer;
+  font-family: var(--mono);
+  font-size: 12px;
+  border-left: 2px solid transparent;
+}
+.lessons nav button:hover { background: var(--surface2); color: var(--ink); }
+.lessons nav button.active {
+  color: var(--accent);
+  border-left-color: var(--accent);
+  background: var(--accent-dim);
+}
+.lessons nav button.done::before { content: "✓ "; color: var(--ok); }
+.lessons nav button:not(.done)::before { content: "○ "; color: var(--muted); }
+.lesson-body { padding: 20px; }
+.lesson-body h2 { font-size: 16px; margin-bottom: 12px; color: var(--accent); }
+.lesson-body .why {
+  background: var(--surface2);
+  border-radius: 6px;
+  padding: 12px;
+  margin: 12px 0;
+  font-size: 13px;
+  line-height: 1.6;
+  border-left: 2px solid var(--info);
+}
+.lesson-body .why b { color: var(--info); display: block; margin-bottom: 6px; }
+.lesson-body ul { margin: 10px 0 10px 20px; line-height: 1.7; font-size: 13px; }
+.lesson-body code {
+  font-family: var(--mono);
+  font-size: 12px;
+  background: var(--surface2);
+  padding: 2px 5px;
+  border-radius: 3px;
+  color: var(--accent);
+}
+.lesson-body pre {
+  font-family: var(--mono);
+  font-size: 12px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 12px;
+  margin: 10px 0;
+  overflow-x: auto;
+  line-height: 1.5;
+}
+.lesson-body pre .fname { color: var(--info); font-size: 11px; opacity: 0.7; }
+.chk {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 8px 0;
+  cursor: pointer;
+  font-size: 13px;
+}
+.chk input { accent-color: var(--ok); cursor: pointer; }
+.chk input:checked + span { color: var(--ok); text-decoration: line-through; }
+.btn {
+  background: var(--accent);
+  color: #0d1117;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  font-size: 13px;
+  margin-top: 12px;
+}
+.btn:hover { filter: brightness(1.15); }
+.btn.ghost {
+  background: var(--surface2);
+  color: var(--ink);
+  border: 1px solid var(--border);
+}
+.btn.ghost:hover { border-color: var(--accent); color: var(--accent); }
+
+/* ── Center: editor ── */
+.editor {
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  overflow: hidden;
+}
+.editor .filebar {
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface);
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  overflow-x: auto;
+}
+.editor .filebar button {
+  font-family: var(--mono);
+  font-size: 12px;
+  padding: 5px 10px;
+  background: var(--surface2);
+  color: var(--muted);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.editor .filebar button.active { color: var(--accent); border-color: var(--accent); }
+.editor .filebar .savehint {
+  margin-left: auto;
+  font-size: 11px;
+  color: var(--muted);
+  font-family: var(--mono);
+}
+#editor {
+  overflow: auto;
+  min-height: 0;          /* same grid-shrink fix */
+  background: #0d1117;
+  font-family: var(--mono);
+  font-size: 13px;
+  line-height: 1.6;
+  padding: 0;
+}
+#editor textarea {
+  width: 100%;
+  height: 100%;
+  background: transparent;
+  color: var(--ink);
+  border: none;
+  outline: none;
+  resize: none;
+  font: inherit;
+  padding: 16px;
+  tab-size: 4;
+  white-space: pre;
+  overflow-wrap: normal;
+  overflow-x: auto;
+}
+.editor .statusbar {
+  padding: 6px 12px;
+  border-top: 1px solid var(--border);
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--muted);
+  display: flex;
+  gap: 16px;
+  background: var(--surface);
+}
+.statusbar .save-ok { color: var(--ok); }
+.statusbar .save-dirty { color: var(--accent); }
+
+/* ── Right: tutor chat ── */
+.tutor {
+  border-left: 1px solid var(--border);
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  overflow: hidden;
+  background: var(--surface);
+}
+.tutor .head {
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.tutor .head .dot {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: var(--muted);
+}
+.tutor .head .dot.on { background: var(--ok); }
+.tutor .head h3 { font-size: 13px; font-weight: 600; }
+.tutor .head button {
+  margin-left: auto;
+  background: none; border: 1px solid var(--border);
+  color: var(--muted); font-size: 11px;
+  padding: 4px 8px; border-radius: 4px; cursor: pointer;
+}
+.tutor .head button:hover { color: var(--accent); border-color: var(--accent); }
+.messages {
+  overflow-y: scroll;
+  min-height: 0;          /* let it shrink inside the grid so scrolling engages */
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border) transparent;
+}
+.messages::-webkit-scrollbar { width: 8px; }
+.messages::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+.messages::-webkit-scrollbar-thumb:hover { background: var(--muted); }
+.messages::-webkit-scrollbar-track { background: transparent; }
+.msg { max-width: 100%; line-height: 1.6; font-size: 13px; }
+.msg .who {
+  font-family: var(--mono);
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--muted);
+  margin-bottom: 4px;
+}
+.msg.user .who { color: var(--info); }
+.msg.tutor .who { color: var(--accent); }
+.msg .body {
+  background: var(--surface2);
+  border-radius: 8px;
+  padding: 10px 12px;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+.msg.user .body { background: #1a2332; }
+.msg .body code {
+  font-family: var(--mono);
+  font-size: 12px;
+  color: var(--accent);
+  background: #0d1117;
+  padding: 1px 4px;
+  border-radius: 3px;
+}
+.chat-input {
+  border-top: 1px solid var(--border);
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.chat-input textarea {
+  background: var(--surface2);
+  color: var(--ink);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 10px;
+  font-family: var(--sans);
+  font-size: 13px;
+  resize: none;
+  outline: none;
+  min-height: 60px;
+  max-height: 160px;
+}
+.chat-input textarea:focus { border-color: var(--accent); }
+.chat-input .row { display: flex; gap: 8px; align-items: center; }
+.chat-input .row .hint { font-size: 11px; color: var(--muted); flex: 1; }
+.chat-input .row button {
+  background: var(--accent);
+  color: #0d1117;
+  border: none;
+  padding: 8px 14px;
+  border-radius: 6px;
+  font-weight: 600;
+  font-size: 12px;
+  cursor: pointer;
+}
+.chat-input .row button:disabled { opacity: 0.4; cursor: not-allowed; }
+
+/* ── Settings modal ── */
+.modal-bg {
+  position: fixed;
+  inset: 0;
+  background: #000000cc;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+}
+.modal-bg.open { display: flex; }
+.modal {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 24px;
+  width: 520px;
+  max-width: 90vw;
+  max-height: 85vh;
+  overflow-y: auto;
+}
+.modal h2 { font-size: 15px; margin-bottom: 16px; color: var(--accent); }
+.modal label {
+  display: block;
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--muted);
+  margin: 14px 0 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.modal input[type=text], .modal input[type=password], .modal textarea {
+  width: 100%;
+  background: var(--surface2);
+  color: var(--ink);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 9px 12px;
+  font-family: var(--mono);
+  font-size: 13px;
+  outline: none;
+}
+.modal textarea { min-height: 120px; resize: vertical; line-height: 1.5; }
+.modal input:focus, .modal textarea:focus { border-color: var(--accent); }
+.modal .note {
+  font-size: 12px;
+  color: var(--muted);
+  line-height: 1.6;
+  margin-top: 8px;
+}
+.modal .note b { color: var(--ink); }
+.modal .actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 20px;
+  justify-content: flex-end;
+}
+
+/* Responsive */
+@media (max-width: 1100px) {
+  .main { grid-template-columns: 1fr; grid-template-rows: auto auto auto; overflow-y: auto; }
+  body { overflow: auto; height: auto; min-height: 100vh; }
+  .lessons, .tutor { border: none; }
+  #editor textarea { min-height: 400px; }
+}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Q2 gRPC Tutor</h1>
+  <span style="font-family:var(--mono);font-size:10px;color:var(--muted);opacity:.7" title="build id">v7</span>
+  <span class="phase-ind">Phase <b id="phaseNum">0</b> / 7 — <span id="phaseName">Setup</span></span>
+  <button class="btn ghost" style="margin:0;padding:5px 12px;font-size:12px" onclick="openSettings()">⚙ API Key</button>
+</header>
+
+<div class="main">
+  <!-- LEFT: lessons -->
+  <aside class="lessons">
+    <nav id="lessonNav"></nav>
+    <div class="lesson-body" id="lessonBody"></div>
+  </aside>
+
+  <!-- CENTER: editor -->
+  <section class="editor">
+    <div class="filebar" id="fileBar"></div>
+    <div id="editor"><textarea id="codeArea" spellcheck="false" placeholder="// Your code appears here. Pick a file from the bar above, or type your own path with Enter."></textarea></div>
+    <div class="statusbar">
+      <span id="filePath">no file</span>
+      <span id="saveState" class="save-dirty">unsaved changes live in browser storage</span>
+      <span style="margin-left:auto"><span id="lineCount">0</span> lines</span>
+    </div>
+  </section>
+
+  <!-- RIGHT: tutor chat -->
+  <aside class="tutor">
+    <div class="head">
+      <span class="dot" id="tutorDot"></span>
+      <h3>Live Tutor</h3>
+      <button onclick="openSettings()">configure</button>
+    </div>
+    <div class="messages" id="messages">
+      <div class="msg tutor">
+        <div class="who">tutor</div>
+        <div class="body">Oyah. I never give you code — I point, question, and review. Type what you're stuck on, or paste the line that's throwing the error.
+
+Add your API key (⚙ API Key, top right) to wake me up.</div>
+      </div>
+    </div>
+    <div class="chat-input">
+      <textarea id="chatBox" placeholder="Ask about your code, the concept, the error..."></textarea>
+      <div class="row">
+        <span class="hint">Enter to send · Shift+Enter newline</span>
+        <button id="sendBtn" onclick="sendMessage()">Send</button>
+      </div>
+    </div>
+  </aside>
+</div>
+
+<!-- Settings modal -->
+<div class="modal-bg" id="settingsModal">
+  <div class="modal">
+    <h2>Tutor API Settings</h2>
+    <label>API Base URL</label>
+    <input type="text" id="cfgUrl" placeholder="https://api.openai.com/v1">
+    <label>API Key</label>
+    <input type="password" id="cfgKey" placeholder="sk-...">
+    <label>Model</label>
+    <input type="text" id="cfgModel" placeholder="gpt-4o-mini">
+    <div class="note">
+      <b>Works with any OpenAI-compatible endpoint</b> — OpenAI, Z.AI, Groq, Ollama (<code>http://localhost:11434/v1</code>), LM Studio, openrouter. The key is stored in your browser's localStorage only. Nothing is sent anywhere except the endpoint you configure.
+      <br><br>
+      <b>Tutor system prompt</b> (edit to change how strict it is):
+    </div>
+    <label>System Prompt</label>
+    <textarea id="cfgSys"></textarea>
+    <div class="actions">
+      <button class="btn ghost" onclick="closeSettings()">Cancel</button>
+      <button class="btn" onclick="saveSettings()">Save</button>
+    </div>
+  </div>
+</div>
+
+<script src="tutor-config.js" onerror="/* optional file, ignore */"></script>
+<script>
+/* ═══════════ LESSON CONTENT ═══════════ */
+const LESSONS = [
+{
+  id: 0, name: "Setup",
+  title: "Phase 0 — Preflight",
+  why: "You're about to write 8 RPCs across 3 files. Before typing anything: confirm toolchain works, branch exists, hello-world mains are gone. The server's main.bal prints noise and runs BEFORE the gRPC listener starts — Ballerina runs main() first if it exists. Delete it now or debug it later.",
+  checks: [
+    "bal version prints 2201.10.0",
+    "git checkout -b feat/grpc-proto",
+    "deleted question2-grpc/server/main.bal",
+    "deleted question2-grpc/client/main.bal",
+  ],
+  goal: "Clean branch, no hello-world files, toolchain verified.",
+},
+{
+  id: 1, name: "Proto",
+  title: "Phase 1 — accommodation.proto (15 marks)",
+  why: "The .proto IS the contract. Every RPC, every message, every field number lives here. 15 of your 50 marks are this file alone. Field numbers are wire identity — unique per message, never renumber. The first enum value MUST be 0 in proto3 or codegen fails.",
+  checks: [
+    "syntax + package header typed",
+    "PropertyStatus enum (AVAILABLE = 0)",
+    "Property + PropertyList messages",
+    "13 request/response messages",
+    "service block with all 8 RPCs",
+    "bal grpc --mode service + client ran clean",
+    "deleted generated client file (it collides with yours)",
+  ],
+  goal: "Stubs generate without error. Commit: feat(grpc): define proto contract with 8 RPCs",
+},
+{
+  id: 2, name: "Store",
+  title: "Phase 2 — store.bal (types, tables, dates)",
+  why: "Internal records ≠ wire messages. Your store uses camelCase closed records; the generated _pb.bal uses snake_case protobuf records — never mix them. Keyed table needs a readonly field for the key. Ballerina has NO string.split() and no exceptions — errors are values in the return union.",
+  checks: [
+    "InternalProperty, Booking, CartItem records",
+    "propertiesTable (keyed table), confirmedBookings + bookingCart (maps)",
+    "parseDate() — hand-rolled, no split()",
+    "calculateNights()",
+    "2 tests in tests/store_test.bal, bal test passes",
+  ],
+  goal: "Store compiles, 2 tests green. Commit: feat(server): add in-memory data store",
+},
+{
+  id: 3, name: "Simple RPCs",
+  title: "Phase 3 — Four simple RPCs",
+  why: "remote function is required — plain function is never reachable over gRPC. Table[key] returns T? (nil = not found). Keyed tables: NO tbl[k] = v. Use add() for insert, remove+add for update, and _ = to discard the return of remove (Ballerina demands you consume it).",
+  checks: [
+    "addProperty — mints PROP-N ids, wraps mutation in lock",
+    "searchProperty — nil check, returns status string",
+    "updateProperty — remove + add inside lock",
+    "removeProperty — returns FULL regional list (read the brief!)",
+    "toWire() helper — internal → wire conversion",
+    "bal build passes",
+  ],
+  goal: "All four unary RPCs compile. Commit: feat(server): add unary CRUD RPCs",
+},
+{
+  id: 4, name: "Streaming",
+  title: "Phase 4 — The streaming pair",
+  why: "Server streaming: stream<T, error?> in the RETURN type — one request, many responses, client receives each as it arrives. Client streaming: stream<T, grpc:Error?> as the PARAMETER — many requests land, ONE confirmation leaves. matching.toStream() converts an array into a stream.",
+  checks: [
+    "listAvailableProperties — location + price filters, both optional",
+    "createUsers — forEach consumes stream, returns single count",
+    "bal build passes",
+  ],
+  goal: "Both streaming RPCs compile. Commit: feat(server): add streaming RPCs",
+},
+{
+  id: 5, name: "Booking",
+  title: "Phase 5 — Booking: cart, overlap, confirm",
+  why: "The hard 20 marks. The brief lists confirm's 3 duties IN ORDER: (1) verify no date overlap, (2) calculate cost = rate × nights, (3) return confirmation AND clear the cart. Overlap is ONE line: newIn < existingOut && newOut > existingIn — half-open [in, out) means same-day turnover is legal. Validate at the boundary, never deep inside logic.",
+  checks: [
+    "bookProperty — validates dates, parks in bookingCart",
+    "isOverlapping() — one line, half-open interval",
+    "confirmBooking — 3 duties, in order",
+    "5 edge-case tests: overlap, back-to-back, inside, identical, zero nights",
+    "bal test: 7 passing, 0 failing (stop the running server first!)",
+  ],
+  goal: "Tests green. Commit: feat(booking): add cart and overlap-checked confirmation",
+},
+{
+  id: 6, name: "Client",
+  title: "Phase 6 — The client (10 marks)",
+  why: "Arrow calls on the client object ARE the remote invocation. Client streaming = 3 steps: ep->createUsers() (no arg!) gets the stream client, ->sendUserRequest(...) per message, ->complete() ends it, ->receiveCreateUsersResponse() gets the single reply. Server streaming: .forEach on the returned stream, body runs per message as it arrives.",
+  checks: [
+    "scripted end-to-end main.bal — all 8 operations",
+    "server running in terminal 1, client in terminal 2",
+    "output shows both streams + cost + rejection",
+    "menu loop wrapping the same calls",
+    "errors print as messages, not stack traces",
+  ],
+  goal: "End-to-end demo works. Commit + push + open PR.",
+},
+{
+  id: 7, name: "Polish",
+  title: "Phase 7 — Polish & defence",
+  why: "bal format before every commit. README section so a stranger can run it. Then rehearse out loud: the 4 RPC kinds (where does stream sit?), why dates are strings, half-open overlap, what lock protects, why removeProperty returns the regional list.",
+  checks: [
+    "bal format in both packages",
+    "README: how to run + regenerate stubs",
+    "rehearsed defence answers out loud",
+  ],
+  goal: "Push, PR open, sleep.",
+},
+];
+
+const TUTOR_SYSTEM_DEFAULT = `You are a live coding tutor for Lazi, a student building a Ballerina gRPC assignment (DSA612S Q2, Rental Accommodation System). He must DEFEND this code live, so it must be genuinely his.
+
+HARD RULES:
+- NEVER write complete functions, files, or solutions for him. Never paste code he can copy-paste wholesale.
+- You MAY show one-line syntax examples, name the exact module/function to look up (e.g. "look at ballerina/time UTCPattern parsing" or "grpc:NotFoundError"), or point to a specific line in his code.
+- Ask a guiding question before giving direction. Make him think first.
+- When reviewing his code: name the file, the function, the line problem, and WHY it matters (concurrency, wire format, defence question). Praise good design decisions specifically.
+- Enforce good design: validation at boundaries, one concern per function, closed records, lock on shared state, errors as values, correct gRPC status codes.
+- Keep answers short. He's typing the code himself; you're the voice in his ear.
+
+CONTEXT: Ballerina 2201.10.0. Known traps: generated proto records keep snake_case field names; keyed tables need remove+add (no tbl[k]=v); table.remove returns a value that must be consumed (_ =); no string.split() in Ballerina; bal test starts the gRPC listener so stop the running server first; foreach var ch not char ch; the generated client file must be deleted (collides with user main).
+
+He works phase by phase. Ask which phase he's on if the conversation doesn't make it clear.`;
+
+/* ═══════════ STATE ═══════════ */
+// Pre-seed config from tools/tutor-config.js if the secure setup script ran
+// (that file is gitignored + chmod 600; it sets window.TUTOR_CFG)
+if (window.TUTOR_CFG) {
+  localStorage.setItem("q2t_cfg", JSON.stringify(window.TUTOR_CFG));
+}
+
+let state = {
+  phase: parseInt(localStorage.getItem("q2t_phase") || "0"),
+  checks: JSON.parse(localStorage.getItem("q2t_checks") || "{}"),
+  files: JSON.parse(localStorage.getItem("q2t_files") || "{}"),
+  activeFile: localStorage.getItem("q2t_activeFile") || "",
+  chat: JSON.parse(localStorage.getItem("q2t_chat") || "[]"),
+  cfg: JSON.parse(localStorage.getItem("q2t_cfg") || "{}"),
+};
+
+function persist() {
+  localStorage.setItem("q2t_phase", state.phase);
+  localStorage.setItem("q2t_checks", JSON.stringify(state.checks));
+  localStorage.setItem("q2t_files", JSON.stringify(state.files));
+  localStorage.setItem("q2t_activeFile", state.activeFile);
+  localStorage.setItem("q2t_chat", JSON.stringify(state.chat.slice(-60)));
+}
+
+/* ═══════════ LESSONS UI ═══════════ */
+function renderNav() {
+  const nav = document.getElementById("lessonNav");
+  nav.innerHTML = "";
+  LESSONS.forEach(l => {
+    const btn = document.createElement("button");
+    const allDone = l.checks.every((_, i) => state.checks[l.id + ":" + i]);
+    btn.className = (state.phase === l.id ? "active " : "") + (allDone ? "done" : "");
+    btn.textContent = `${l.id}. ${l.name}`;
+    btn.onclick = () => { state.phase = l.id; persist(); renderAll(); };
+    nav.appendChild(btn);
+  });
+}
+
+function renderLesson() {
+  const l = LESSONS[state.phase];
+  document.getElementById("phaseNum").textContent = l.id;
+  document.getElementById("phaseName").textContent = l.name;
+  const body = document.getElementById("lessonBody");
+  let html = `<h2>${l.title}</h2><div class="why"><b>WHY THIS EXISTS</b>${l.why}</div>`;
+  html += `<div style="font-family:var(--mono);font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;margin-top:16px;margin-bottom:8px">Checklist</div>`;
+  l.checks.forEach((c, i) => {
+    const key = l.id + ":" + i;
+    const checked = state.checks[key] ? "checked" : "";
+    html += `<label class="chk"><input type="checkbox" ${checked} onchange="toggleCheck('${key}')"><span>${c}</span></label>`;
+  });
+  html += `<div style="margin-top:16px;padding:10px;background:var(--accent-dim);border-radius:6px;font-size:12px;line-height:1.5"><b style="color:var(--accent)">GOAL:</b> ${l.goal}</div>`;
+  body.innerHTML = html;
+}
+
+function toggleCheck(key) {
+  state.checks[key] = !state.checks[key];
+  persist(); renderNav(); renderLesson();
+}
+
+/* ═══════════ EDITOR ═══════════ */
+
+function renderFileBar() {
+  const bar = document.getElementById("fileBar");
+  bar.innerHTML = "";
+  Object.keys(state.files).forEach(f => {
+    const b = document.createElement("button");
+    b.textContent = f.split("/").pop();
+    b.className = state.activeFile === f ? "active" : "";
+    b.onclick = () => { state.activeFile = f; persist(); renderFileBar(); loadFile(); };
+    b.oncontextmenu = (e) => { e.preventDefault(); if (confirm("Delete " + f + "?")) { delete state.files[f]; if (state.activeFile === f) state.activeFile = Object.keys(state.files)[0] || ""; persist(); renderFileBar(); loadFile(); } };
+    bar.appendChild(b);
+  });
+  const add = document.createElement("button");
+  add.textContent = "+ new file";
+  add.onclick = newFile;
+  bar.appendChild(add);
+  const hint = document.createElement("span");
+  hint.className = "savehint";
+  hint.textContent = "auto-saved to this browser";
+  bar.appendChild(hint);
+}
+
+function newFile() {
+  const name = prompt("File path (e.g. question2-grpc/accommodation.proto):");
+  if (!name) return;
+  state.files[name] = "";
+  state.activeFile = name;
+  persist(); renderFileBar(); loadFile();
+}
+
+function loadFile() {
+  const area = document.getElementById("codeArea");
+  const path = document.getElementById("filePath");
+  if (!state.activeFile || !(state.activeFile in state.files)) {
+    area.value = "";
+    area.placeholder = "// Pick a file, or click '+ new file' and give it a path.\n// Suggested first file: question2-grpc/accommodation.proto";
+    path.textContent = "no file";
+    document.getElementById("lineCount").textContent = "0";
+    return;
+  }
+  area.value = state.files[state.activeFile];
+  path.textContent = state.activeFile;
+  document.getElementById("lineCount").textContent = area.value.split("\n").length;
+}
+
+document.getElementById("codeArea").addEventListener("input", (e) => {
+  if (!state.activeFile) return;
+  state.files[state.activeFile] = e.target.value;
+  document.getElementById("lineCount").textContent = e.target.value.split("\n").length;
+  document.getElementById("saveState").textContent = "● unsaved";
+  document.getElementById("saveState").className = "save-dirty";
+  clearTimeout(window._saveT);
+  window._saveT = setTimeout(() => {
+    persist();
+    document.getElementById("saveState").textContent = "✓ saved to browser";
+    document.getElementById("saveState").className = "save-ok";
+  }, 600);
+});
+
+document.getElementById("codeArea").addEventListener("keydown", (e) => {
+  if (e.key === "Tab") {
+    e.preventDefault();
+    const t = e.target, s = t.selectionStart;
+    t.value = t.value.slice(0, s) + "    " + t.value.slice(t.selectionEnd);
+    t.selectionStart = t.selectionEnd = s + 4;
+    t.dispatchEvent(new Event("input"));
+  }
+});
+
+/* ═══════════ TUTOR CHAT ═══════════ */
+function renderChat() {
+  const box = document.getElementById("messages");
+  box.innerHTML = "";
+  state.chat.forEach(m => addMsgToDom(m.role, m.content));
+  box.scrollTop = box.scrollHeight;
+}
+
+function addMsgToDom(role, text) {
+  const box = document.getElementById("messages");
+  const div = document.createElement("div");
+  div.className = "msg " + (role === "user" ? "user" : "tutor");
+  div.innerHTML = `<div class="who">${role === "user" ? "you" : "tutor"}</div><div class="body"></div>`;
+  div.querySelector(".body").textContent = text;
+  box.appendChild(div);
+  box.scrollTop = box.scrollHeight;
+}
+
+function getActiveCodeContext() {
+  if (!state.activeFile || !(state.activeFile in state.files)) return "";
+  return `FILE: ${state.activeFile}\n\`\`\`\n${state.files[state.activeFile]}\n\`\`\``;
+}
+
+async function sendMessage() {
+  const box = document.getElementById("chatBox");
+  const text = box.value.trim();
+  if (!text) return;
+  const { url, key, model, sys } = getCfg();
+  if (!url || !key) {
+    addMsgToDom("assistant", "Add your API key first — ⚙ API Key, top right. Everything else works without it.");
+    return;
+  }
+  addMsgToDom("user", text);
+  state.chat.push({ role: "user", content: text });
+  box.value = "";
+
+  const phase = LESSONS[state.phase];
+  const userPayload = `CURRENT PHASE: ${phase.id} — ${phase.title}
+GOAL: ${phase.goal}
+CHECKLIST STATE: ${phase.checks.map((c, i) => (state.checks[phase.id + ":" + i] ? "[x] " : "[ ] ") + c).join("\n")}
+
+MY CODE (${state.activeFile || "no file open"}):
+${getActiveCodeContext() || "(empty)"}
+
+MESSAGE: ${text}`;
+
+  const btn = document.getElementById("sendBtn");
+  btn.disabled = true;
+  const dot = document.getElementById("tutorDot");
+  dot.className = "dot";
+  dot.style.background = "var(--accent)";
+
+  try {
+    // ALWAYS go through the local tutor-server proxy at 127.0.0.1:8765 —
+    // no Authorization header from the browser, no CORS, no preflight,
+    // works no matter how this page was opened (localhost, VS Code preview, file://).
+    // Direct-to-provider remains as fallback if the proxy is unreachable.
+    const PROXY = "http://127.0.0.1:8765";
+    const useProxy = await (async () => {
+      try { const p = await fetch(PROXY + "/healthz", {signal: AbortSignal.timeout(1500)}); return p.ok; }
+      catch { return false; }
+    })();
+    const endpoint = useProxy ? PROXY + "/v1/chat/completions" : url.replace(/\/$/, "") + "/chat/completions";
+    const headers = useProxy
+      ? { "Content-Type": "application/json" }
+      : { "Content-Type": "application/json", "Authorization": "Bearer " + key };
+    const res = await fetch(endpoint, {
+      method: "POST",
+      headers: headers,
+      body: JSON.stringify({
+        model: model || "gpt-4o-mini",
+        messages: [
+          { role: "system", content: sys },
+          ...state.chat.slice(-12, -1),
+          { role: "user", content: userPayload }
+        ],
+        temperature: 0.4,
+        // glm thinking models spend tokens on reasoning_content first and can
+        // leave content empty; disable thinking so answers land in content
+        thinking: { type: "disabled" },
+      })
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}: ${await res.text()}`);
+    const data = await res.json();
+    const rawMsg = data.choices?.[0]?.message || {};
+    // fall back to reasoning_content if the model still returns only thinking
+    const reply = rawMsg.content || rawMsg.reasoning_content || "(empty response — model returned nothing)";
+    addMsgToDom("assistant", reply);
+    state.chat.push({ role: "assistant", content: reply });
+  } catch (err) {
+    addMsgToDom("assistant", "API call failed: " + err.message + "\n\nCheck the URL (must end in /v1, no /chat/completions), key, and that the endpoint allows browser CORS requests. Local Ollama: run with OLLAMA_ORIGINS=* to allow this page.");
+  }
+  btn.disabled = false;
+  dot.className = "dot" + (getCfg().key ? " on" : "");
+  persist();
+}
+
+document.getElementById("chatBox").addEventListener("keydown", (e) => {
+  if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendMessage(); }
+});
+
+/* ═══════════ SETTINGS ═══════════ */
+function getCfg() {
+  return {
+    url: state.cfg.url || "",
+    key: state.cfg.key || "",
+    model: state.cfg.model || "",
+    sys: state.cfg.sys || TUTOR_SYSTEM_DEFAULT,
+  };
+}
+
+function openSettings() {
+  const c = getCfg();
+  document.getElementById("cfgUrl").value = c.url;
+  document.getElementById("cfgKey").value = c.key;
+  document.getElementById("cfgModel").value = c.model;
+  document.getElementById("cfgSys").value = c.sys;
+  document.getElementById("settingsModal").classList.add("open");
+}
+
+function closeSettings() {
+  document.getElementById("settingsModal").classList.remove("open");
+}
+
+function saveSettings() {
+  state.cfg = {
+    url: document.getElementById("cfgUrl").value.trim(),
+    key: document.getElementById("cfgKey").value.trim(),
+    model: document.getElementById("cfgModel").value.trim(),
+    sys: document.getElementById("cfgSys").value,
+  };
+  persist();
+  closeSettings();
+  const dot = document.getElementById("tutorDot");
+  dot.className = "dot" + (state.cfg.key ? " on" : "");
+  addMsgToDom("assistant", state.cfg.key
+    ? `Connected to ${state.cfg.url || "(no url)"} with model ${state.cfg.model || "(default)"}. I can now see your active file and phase. Ask away.`
+    : "Key cleared. The guide still works; live chat doesn't.");
+}
+
+/* ═══════════ INIT ═══════════ */
+function renderAll() { renderNav(); renderLesson(); renderFileBar(); loadFile(); }
+renderAll();
+renderChat();
+document.getElementById("tutorDot").className = "dot" + (getCfg().key ? " on" : "");
+
+// Seed with an empty starter file on first run so the user sees how it works
+if (Object.keys(state.files).length === 0) {
+  state.files["question2-grpc/accommodation.proto"] = "";
+  state.activeFile = "question2-grpc/accommodation.proto";
+  persist(); renderAll();
+}
+</script>
+</body>
+</html>

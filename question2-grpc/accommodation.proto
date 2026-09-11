@@ -1,0 +1,117 @@
+syntax = "proto3";
+
+package accommodation;
+
+service AccommodationService {
+
+    rpc createUsers (stream UserRequest) returns (CreateUsersResponse);
+    rpc listAvailableProperties (ListRequest) returns (stream PropertyList);
+    rpc searchProperty (SearchRequest) returns (SearchPropertyResponse);
+    rpc addProperty (AddPropertyRequest) returns (AddPropertyResponse);
+    rpc updateProperty (UpdatePropertyRequest) returns (UpdatePropertyResponse);
+    rpc removeProperty (RemovePropertyRequest) returns (PropertyList);
+    rpc bookProperty (BookRequest) returns (BookResponse);
+    rpc confirmBooking (ConfirmRequest) returns (BookingConfirmation);
+}
+
+// the messages section 🗣️
+
+message AddPropertyRequest {
+    string name = 1;
+    string location = 2;
+    string property_type = 3;
+    double price_per_night = 4;
+    PropertyStatus status = 5;
+}
+
+message AddPropertyResponse {
+    string property_id = 1;
+    string message = 2;
+}
+
+message UserRequest {
+    string user_id = 1;
+    string name = 2;
+    string role = 3;
+}
+
+message CreateUsersResponse {
+    int32 count = 1;
+    string message = 2;
+}
+
+message UpdatePropertyRequest {
+    string property_id = 1;
+    string name = 2;
+    double price_per_night = 3;
+    PropertyStatus status = 4;
+}
+
+message UpdatePropertyResponse {
+    string message = 1;
+}
+
+message RemovePropertyRequest {
+    string property_id = 1;
+}
+
+message Property {
+    string property_id = 1;
+    string name = 2;
+    string location = 3;
+    string property_type = 4;
+    double price_per_night = 5;
+    //uses enum at bottom for it iwl still gotta do the .bal to actually see if it works doe
+    PropertyStatus status = 6;
+}
+
+message SearchPropertyResponse {
+        string status = 1;
+        // we using the custom type we made in the message property above ts
+        Property property = 2;
+}
+
+message PropertyList {
+    // repeated just helps us loop fr
+    repeated Property properties = 1;
+}
+
+message ListRequest {
+    // in the .bal an empty string for location = no location filter; double 0 on the price = no price filter so itll basically show everything or like a dont filer at all
+    string location = 1;
+    double max_price = 2;
+}
+
+message SearchRequest {
+    string property_id = 1;
+}
+
+message BookRequest {
+    string property_id = 1;
+    string guest_id = 2;
+    string check_in = 3;
+    string check_out = 4;
+}
+
+message BookResponse {
+    string cart_id = 1;
+    string message = 2;
+}
+
+message ConfirmRequest {
+    string cart_id = 1;
+}
+
+message BookingConfirmation {
+    string booking_id = 1;
+    string property_id = 2;
+    int32 nights = 3;
+    double total_cost = 4;
+    string message = 5;
+}
+
+enum PropertyStatus {
+    AVAILABLE = 0;
+    BOOKED = 1;
+    INACTIVE = 2;
+}

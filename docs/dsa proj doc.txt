@@ -1,0 +1,51 @@
+Ten days left (today is 4 Sept, due 14 Sept). That changes the answer — the split has to minimise blocking, because nobody has time to wait on anyone else.
+
+Here's the five-way split I'd run.
+
+THE SPLIT
+
+You — Q2 gRPC, whole thing. 50 marks.
+Files: question2-grpc/accommodation.proto, server/, client/
+Nobody else touches these. You own proto + server + client end to end. This is the heaviest single slice, which is correct since you're the one who wants to learn Ballerina properly.
+
+Person 2 — Q1 REST service (the backend). ~30 of Q1's marks.
+Files: question1-rest/server/
+Data model records, the map/table keyed by assetTag, all CRUD resource functions, institution/site filtering, overdue maintenance check, components + schedules + work orders, error handling for bad calls.
+
+Person 3 — Q1 REST client (the CLI). ~10 of Q1's marks.
+Files: question1-rest/client/
+Menu-driven client: loan/book, global view, campus view, overdue dashboard, schedule manager.
+Critical: person 2 and 3 must agree the endpoint list and JSON shapes on day one, written into docs/api-contract.md. Once that's agreed, person 3 can build and test against a hardcoded stub while person 2 is still writing the real service. That's what stops them blocking each other.
+
+Person 4 — Bonus web UI + final demo. ~10 bonus marks.
+Files: question1-rest/web/
+Plain HTML/JS hitting person 2's REST API. No framework, no build step — you don't have time. Then owns the demo script and recording for the presentation.
+
+Person 5 — Repo, integration, QA. No marks of their own, protects everyone else's.
+Files: root README.md, docs/, .gitignore, CI if any
+Sets up the repo structure today, reviews PRs, writes the architecture diagram, and builds the test matrix — especially the booking edge cases for your confirm_booking: back-to-back dates, same-day checkout/checkin, one range fully inside another, double-confirm of the same cart, end date before start. They write those as a checklist and hand it to you; you implement against it. They also make sure every member has commits (the brief requires it).
+
+WHY THIS WORKS WITH 5
+
+Each person owns a distinct directory, so merge conflicts are near-zero. The only cross-person dependency is the REST API contract between persons 2, 3 and 4, and that's solved by writing the contract down on day one instead of waiting for code.
+
+Your slice has zero dependencies on anyone. You can start right now and finish without ever waiting.
+
+ROUGH TIMELINE
+
+- Day 1-2: repo scaffold, API contract agreed, everyone's toolchain installed. You: .proto written and stubs generating.
+- Day 3-6: everyone builds their slice. You: unary RPCs, then streaming, then booking logic.
+- Day 7-8: integration — clients talk to real servers, QA runs the test matrix, bugs filed.
+- Day 9: README, architecture doc, demo rehearsal.
+- Day 10: buffer. Do not plan to use it.
+
+TWO THINGS TO TELL YOUR GROUP TODAY
+
+1. Everyone installs Ballerina immediately and commits a hello-world. Finding out on day 8 that someone's toolchain is broken is how groups lose marks.
+2. Small, frequent commits from everyone. The brief requires all members to be contributors, and one giant commit at the end from one person looks exactly like what the plagiarism clause is aimed at.
+
+NEXT STEP FOR US
+
+The gh device login is still waiting — open https://github.com/login/device and enter F5C2-B63E. If that code has expired I'll generate a fresh one.
+
+Once you're in, I'll clone dsa-project into WSL and we start writing accommodation.proto together. I'll teach you protobuf message/service syntax and the four RPC kinds as we go, and you'll type it — you have to defend this live, so it needs to be genuinely yours.
