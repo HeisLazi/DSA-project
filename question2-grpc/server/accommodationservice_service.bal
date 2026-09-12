@@ -3,6 +3,8 @@ import ballerina/grpc;
 listener grpc:Listener ep = new (9090);
 // declared the unique id we use later on in InternalProperty
 int nextPropertyNum = 1;
+int nextCartNum = 1;
+int nextBookingNum = 1;
 
 // idk but i was told we neeed this  cause it attaches .proto schema
 @grpc:Descriptor {value: ACCOMMODATION_DESC}
@@ -147,15 +149,106 @@ service "AccommodationService" on ep {
 
     remote function bookProperty(BookRequest value) returns BookResponse|error {
 
+        // we throw errors first before we let them even get to the calculation of nights they booked fr
+        int|error nightsResult = calculateNights(value.check_in, value.check_out);
+        if nightsResult is error {
+            return error grpc:InvalidArgumentError("invalid booking dates");
+        }
+
+        int nights = nightsResult;
+        if nights <= 0 {
+            return error grpc:InvalidArgumentError("check_in must be before check_out");
+        }
+
+        InternalProperty? p = propertiesTable[value.property_id];
+        if p is () {
+            return error grpc:NotFoundError("no Property " + value.property_id);
+        }
+
+        // declared a unique cart id to help keep track of what gets book for the carts confirmBooking rpc
+        string cartId = "CART-" + nextCartNum.toString();
+        nextCartNum += 1;
+
+        CartItem item = {
+            cartId: cartId,
+            propertyId: value.property_id,
+            guestId: value.guest_id,
+            checkIn: value.check_in,
+            checkOut: value.check_out
+        };
+
+        lock {
+            bookingCart[cartId] = item;
+        }
+
+        return {
+            cart_id: cartId,
+            message: "Property " + value.property_id + " added to booking cart"
+        };
     }
 
     remote function confirmBooking(ConfirmRequest value) returns BookingConfirmation|error {
+        // error handling
+        CartItem? item = bookingCart[value.cart_id];
+        if item is () {
+            return error grpc:NotFoundError("no cart with id " + value.cart_id);
+        }
+
+        InternalProperty? p = propertiesTable[item.propertyId];
+        if p is () {
+            return error grpc:NotFoundError("no Property " + item.propertyId);
+        }
+
+        int|error nightsResult = calculateNights(item.checkIn, item.checkOut);
+        if nightsResult is error {
+            return error grpc:InvalidArgumentError("invalid booking dates");
+        }
+
+        // we looping through existing bookings to check for overlaps
+        int nights = nightsResult;
+        lock {
+            foreach Booking existing in confirmedBookings {
+                if existing.propertyId == item.propertyId &&
+                    isOverlapping(existing.checkIn, existing.checkOut, item.checkIn, item.checkOut) {
+                    return error grpc:AlreadyExistsError("property " + item.propertyId + " is already booked for those dates");
+                }
+            }
+
+            // actual calculation for totalCost done here
+            float totalCost = nights * p.pricePerNight;
+            string bookingId = "BOOKING-" + nextBookingNum.toString();
+            nextBookingNum += 1;
+
+            Booking booking = {
+                bookingId: bookingId,
+                propertyId: item.propertyId,
+                guestId: item.guestId,
+                checkIn: item.checkIn,
+                checkOut: item.checkOut,
+                nights: nights,
+                totalCost: totalCost
+            };
+
+            // remove the property from cart and give back confirmation with return
+            confirmedBookings[bookingId] = booking;
+            _ = bookingCart.remove(value.cart_id);
+
+            return {
+                booking_id: bookingId,
+                property_id: item.propertyId,
+                nights: nights,
+                total_cost: totalCost,
+                message: "Booking confirmed for property " + item.propertyId + " with booking ID " + bookingId
+            };
+        }
     }
 
     remote function createUsers(stream<UserRequest, grpc:Error?> clientStream) returns CreateUsersResponse|error {
+        return error("createUsers is not implemented");
     }
 
     remote function listAvailableProperties(ListRequest value) returns stream<PropertyList, error?>|error {
+        return error("listAvailableProperties is not implemented");
     }
 }
 
