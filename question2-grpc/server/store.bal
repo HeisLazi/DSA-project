@@ -3,7 +3,7 @@
 public type InternalProperty record {|
     // table keys are readonly ; eg string id; also we using closed brackets
     // so unkown feilds arent compiled
-    readonly string id;
+    readonly string propertyId;
     string name;
     string location;
     string propertyType;
