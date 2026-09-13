@@ -87,4 +87,35 @@ function overdueDashboardMenu() {
     }
     io.println("Total overdue:  " + result.length().toString());
 }
+// Prompts the user for optional institution and site filters. Blank
+// inputs are treated as no filter rather than empty strings. The filters are
+// converted to optional values before fetching the matching assets. The API
+// result is then checked for errors before displaying the filtered assets and
+// their total count.
+function campusViewMenu() {
+    io:println("");
+    io:println("-- Campus View --");
+    string institution = io:readln("Institution (blank for any): ").trim();
+    string site = io:readln("Site/Campus (blank for any): ").trim();
+    string? inst = institution == "" ? () : institution;
+    string? st = site == "" ? () : site;
 
+    Asset[]error result = fetchAssetsFiltered(inst, st);
+    if result is error{
+        printApiError(result);
+        return
+    }
+    printAssetTable(result);
+    io:println("Total: " + result.length().toString()  + " asset(s)");
+}
+
+
+//Provides a sub-menu for borrowing or returning an asset. For a
+// loan, it collects the required borrower details, builds a LoanRequest, and
+// sends it to the API. For a return, it sends the selected asset tag to the
+// API. The result is checked for errors, and successful operations display
+// the result. Invalid options simply return without making an API call.
+
+function loanBookMenu() {
+    
+}
