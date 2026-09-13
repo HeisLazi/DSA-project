@@ -62,7 +62,29 @@ function globalViewMenu() {
     io:println("Total: " + result.length().toString() + " assets(s)");
 }
 
+//Fetches and displays all overdue assets. If the API returns an
+// error, it is handled and the function stops. If there are no overdue assets,
+// a message is shown instead. Otherwise, each overdue asset is displayed with
+// its overdue schedules listed underneath, followed by the total number of
+// overdue assets.
 function overdueDashboardMenu() {
-    
+    io:prntln("");
+    io:println("-- Overdue Dashboard --");
+    Asset[] | error result = fetchOverdueAssets();
+    if result is error {
+        printApiError(result);
+        return;
+    }
+    if result.length() == 0 {
+        io:println("Nothing overdue.");
+        return;
+    }
+    foreach Asset a in result {
+        printAssetSummary(a);
+        foreach Schedule s in a.schedules {
+            io:println("  [" + s.'type +"]  due " + s.dueDate + " - " + s.description);
+        }
+    }
+    io.println("Total overdue:  " + result.length().toString());
 }
 
