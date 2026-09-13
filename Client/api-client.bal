@@ -1,4 +1,5 @@
 import ballerina/http;
+import ballerina/url;
 //this file calls plain functions, only place that knows abt HTTP, URLs, and JSON. 
 
 
@@ -10,7 +11,7 @@ final http:Client apiClient = check new (serviceUrl, timeout = 5);
 
 function ensureOk(http:Response resp) returns error? {
     int code = resp.statusCode;
-    if code <- 200 && code < 300 {
+    if code >= 200 && code < 300 {
         return; //returning nothing from a 'return error?' function means "no error"
     }
     string message = "Request failed with status " + code.toString();
@@ -27,7 +28,7 @@ function ensureOk(http:Response resp) returns error? {
 // `json` type —  cloneWithType() turns that into specific record type
 // (Asset), checking that the fields line up with what you declared in
 // types.bal. if a field name or type there is wrong, cloneWithType() is where it breaks.
-function pureAsset(http:Response resp) returns Asset|error {
+function parseAsset(http:Response resp) returns Asset|error {
     check ensureOk(resp);
     json payload = check resp.getJsonPayload();
     Asset asset = check payload.cloneWithType(Asset);
@@ -36,7 +37,7 @@ function pureAsset(http:Response resp) returns Asset|error {
 //'type AssetArray Asset[];' is a type alias, tjat goves that array type a name so cloneWithTypy(AssetArray) below can refer to it.
 type AssetArray Asset[];
 
-function parseASsetArray(http:Response resp) returns Asset[]|error {
+function parseAssetArray(http:Response resp) returns Asset[]|error {
     check ensureOk(resp);
     json payload = check resp.getJsonPayload();
     Asset[] assets = check payload.cloneWithType(AssetArray);
@@ -44,15 +45,52 @@ function parseASsetArray(http:Response resp) returns Asset[]|error {
 }
 
 function fetchAllAssets() returns Asset[]|error {
-    hhtp:Response resp = check apiClient-> get("/assets");
+    http:Response resp = check apiClient-> get("/assets");
     return parseAssetArray(resp);
 }
 
 function fetchOverdueAssets() returns Asset[]|error {
     http:Response resp = check apiClient-> get("/assets/overdue");
-    return error("not implemented");
+    return parseAssetArray(resp);
 }
 
 function fetchAssetsFiltered(string? institution, string? site) returns Asset[]|error {
-    return error("not implemented");
+    string query = "";
+    if institution is string {
+        string encoded = check url:encode(institution, "UTF-8");
+        query += (query == "" ? "?" : "&") + "institution=" + encoded;
+    }
+    if site is string {
+        string encoded = check url:encode(site, "UTF-8");
+        query += (query == "" ? "?" : "&") + "site=" + encoded;
+    }
+    http:Response resp = check apiClient-> get("/assets" + query);
+    return parseAssetArray(resp);
+        
+
+}
+
+function loanAsset(string assetTag, LoanRequest req) returns Asset|error {
+    http:Response resp = check apiClient-> post("/assets/" + assetTag + "/loan", req.toJson());
+    return parseAsset(resp);
+}
+
+function returnAsset(string assetTag) returns Asset|error {
+    http:Response resp = check apiClient-> post("/assets/" + assetTag + "/return", {});
+    return parseAsset(resp);
+}
+
+function addSchedule(string assetTag, ScheduleRequest req) returns Asset|error {
+    http:Response resp = check apiClient-> post("/assets/" + assetTag + "/schedules", req.toJson());
+    return parseAsset(resp);
+}
+
+function updateSchedule(string assetTag, string scheduleId, ScheduleRequest req) returns Asset|error {
+    http:Response resp = check apiClient->put("/assets/" + assetTag + "/schedules/" + scheduleId, req.toJson());
+    return parseAsset(resp);
+}
+
+function removeSchedule(string assetTag, string scheduleId) returns Asset|error {
+    http:Response resp = check apiClient->delete("/assets/" + assetTag + "/schedules/" + scheduleId);
+    return parseAsset(resp);
 }
