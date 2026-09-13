@@ -36,7 +36,7 @@ public type CartItem record {|
 
 // used the id we made readonly so the table is searchable also
 // cause sir asked for that in doc
-table<InternalProperty> key(propId) propertiesTable = table [];
+table<InternalProperty> key(propertyId) propertiesTable = table [];
 
 // for map the key lives outside but a table the key is in the object
 // so its kinda like an sql table i think
