@@ -53,3 +53,28 @@ function printAssetTable(Asset[] assets) {
     }
 
 }
+//Displays detailed information about an asset, including its basic
+// details, schedules, and work orders. The schedules and work orders sections
+// are only shown when the asset contains entries for them. This provides a
+// complete detail view of the asset after a successful loan, return, or
+// schedule change.
+function printAssetDetail(Asset a) {
+    io.println("Asset Tag: " + a.assetTag);
+    io.println("Name: " + a.name);
+    io.println("Description: " + a.description);
+    io.println("Institution: " + a.institution);
+    io.println("Status: " + a.status);
+    io.println("Date Acquired: " + a.dateAcquired);
+    if a.schedules.length() > 0 {
+        io;println("Schedules:");
+        foreach Schedule s in a.schedules {
+               io:println("  [" + s.scheduleId + "] " + s.'type + " due " + s.dueDate + " - " + s.description);
+        }
+    }
+    if a.workOrders.length() > 0 {
+        io:println("Work Orders:");
+        foreach WorkOrder w in a.workOrders {
+            io:println("  [" + w.orderId + "] " + w.status + " - " + w.description);
+        }
+    }
+}
