@@ -150,7 +150,6 @@ function campusViewMenu() {
         io:println("Invalid option.");
     }
 }
-}
 
 //Provides a sub-menu for adding, updating, or removing an asset
 // schedule. Each action collects the information it needs, builds the

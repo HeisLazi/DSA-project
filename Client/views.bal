@@ -16,18 +16,19 @@ function padRight(string s, int width) returns string {
     return result;
 }
 
-function repeatChar(string cg, int n) returns string {
+function repeatChar(string ch, int n) returns string {
     string result ="";
-    int = 0;
+    int i = 0;
     while i < n {
         result = result + ch;
+        i += 1;
 
     }
     return result;
 }
 
 //where error messages get shown to the user
-function printApi Error(error e) {
+function printApiError(error e) {
     io:println("Error:" + e.message());
 }
 
@@ -46,8 +47,8 @@ function printAssetTable(Asset[] assets) {
     }
     io:println(padRight("ASSET TAG", 18) + padRight("NAME", 30) + padRight("INSTITUTION", 24)
     + padRight("SITE", 26)+ padRight("STATUS", 16));
+     io:println(repeatChar("-", 114));
     foreach Asset a in assets{
-    io:println(repeatChar("-", 114));
     io:println(padRight(a.assetTag, 18) + padRight(a.name, 30) + padRight(a.institution, 24) 
     + padRight(a.site, 26) + padRight(a.status, 16));
     }
@@ -59,14 +60,16 @@ function printAssetTable(Asset[] assets) {
 // complete detail view of the asset after a successful loan, return, or
 // schedule change.
 function printAssetDetail(Asset a) {
-    io.println("Asset Tag: " + a.assetTag);
-    io.println("Name: " + a.name);
-    io.println("Description: " + a.description);
-    io.println("Institution: " + a.institution);
-    io.println("Status: " + a.status);
-    io.println("Date Acquired: " + a.dateAcquired);
+    io:println("Asset Tag: " + a.assetTag);
+    io:println("Name: " + a.name);
+    io:println("Description: " + a.description);
+    io:println("Institution: " + a.institution);
+    io:println("Site: "         + a.site);
+    io:println("Status: " + a.status);
+    io:println("Date Acquired: " + a.dateAcquired);
+
     if a.schedules.length() > 0 {
-        io;println("Schedules:");
+        io:println("Schedules:");
         foreach Schedule s in a.schedules {
                io:println("  [" + s.scheduleId + "] " + s.'type + " due " + s.dueDate + " - " + s.description);
         }
