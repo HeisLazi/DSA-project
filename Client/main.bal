@@ -52,7 +52,7 @@ function printMainMenu() {
 // type casting.
 function globalViewMenu() {
     io:println("");
-    io:print("-- Global View: All Assets --");
+    io:println("-- Global View: All Assets --");
     Asset[] | error result = fetchAllAssets();
     if result is error {
         printApiError(result);
@@ -68,7 +68,7 @@ function globalViewMenu() {
 // its overdue schedules listed underneath, followed by the total number of
 // overdue assets.
 function overdueDashboardMenu() {
-    io:prntln("");
+    io:println("");
     io:println("-- Overdue Dashboard --");
     Asset[] | error result = fetchOverdueAssets();
     if result is error {
@@ -85,7 +85,7 @@ function overdueDashboardMenu() {
             io:println("  [" + s.'type +"]  due " + s.dueDate + " - " + s.description);
         }
     }
-    io.println("Total overdue:  " + result.length().toString());
+    io:println("Total overdue:  " + result.length().toString());
 }
 // Prompts the user for optional institution and site filters. Blank
 // inputs are treated as no filter rather than empty strings. The filters are
@@ -100,10 +100,10 @@ function campusViewMenu() {
     string? inst = institution == "" ? () : institution;
     string? st = site == "" ? () : site;
 
-    Asset[]error result = fetchAssetsFiltered(inst, st);
+    Asset[]|error result = fetchAssetsFiltered(inst, st);
     if result is error{
         printApiError(result);
-        return
+        return;
     }
     printAssetTable(result);
     io:println("Total: " + result.length().toString()  + " asset(s)");
@@ -116,7 +116,6 @@ function campusViewMenu() {
 // API. The result is checked for errors, and successful operations display
 // the result. Invalid options simply return without making an API call.
 
-function loanBookMenu() {
     function loanBookMenu() {
     io:println("");
     io:println("-- Loan / Book / Return --");
@@ -195,7 +194,7 @@ function scheduleManagerMenu() {
 
 function handleAssetResult(Asset|error result) {
     if result is error {
-        print ApiError(result);
+        printApiError(result);
         return;
     }
     io:println("Success. Updated asset:");
