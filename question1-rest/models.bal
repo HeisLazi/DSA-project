@@ -38,3 +38,13 @@ public type Asset record {|
     MaintenanceSchedule[] schedules; // list of maintenance schedules for the asset
     WorkOrder[] workOrders; // list of work orders associated with the asset
 |};
+
+public type NewWorkOrderInput record {|
+    string compId;   
+    string scheduleId;   
+    string description;   
+|};
+
+public type NewTaskInput record {|
+    string description;
+|};

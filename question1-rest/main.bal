@@ -1,5 +1,4 @@
-import ballerina/io;
+import ballerina/http;
 
-public function main() {
-    io:println("Hello, World!");
-}
+listener http:Listener assetListener = new(8080); // opens port 8080
+
