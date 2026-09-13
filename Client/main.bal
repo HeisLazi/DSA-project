@@ -33,3 +33,36 @@ public function main() {
         }
     }
 }
+
+function printMainMenu() {
+    io:println("");
+    io:println("MAIN MENU");
+    io:println("1) Global View                -list every asset across the ministry");
+    io:println("2) Campus View                -filter by institution / site");
+    io:println("3) Loan / Book / Return an asset");
+    io:println("4) Overdue Dashboard - assets past their due date");
+    io:println("5) Schedule Manager  - add, update, or remove schedules");
+    io:println("0) Exit");
+}
+
+// fetchAllAssets() returns either a list of assets or an error. The result
+// is checked before using it so that errors are handled first. Once the error
+// case is returned, Ballerina knows that result is an Asset[], allowing the
+// program to safely use the asset list and display it without needing any
+// type casting.
+function globalViewMenu() {
+    io:println("");
+    io:print("-- Global View: All Assets --");
+    Asset[] | error result = fetchAllAssets();
+    if result is error {
+        printApiError(result);
+        return;
+    }
+    printAssetTable(result);
+    io:println("Total: " + result.length().toString() + " assets(s)");
+}
+
+function overdueDashboardMenu() {
+    
+}
+
