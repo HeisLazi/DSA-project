@@ -244,11 +244,45 @@ service "AccommodationService" on ep {
     }
 
     remote function createUsers(stream<UserRequest, grpc:Error?> clientStream) returns CreateUsersResponse|error {
-        return error("createUsers is not implemented");
+        int clientCount = 0;
+        error? err = clientStream.forEach(function (UserRequest user) {
+            clientCount += 1;
+        });
+
+        if err is error {
+            return error grpc:InternalError("Error processing user stream: " + err.toString());
+        } else {
+            return {
+                count: clientCount,
+                message: "Successfully created " + clientCount.toString() + " users."
+            };
+        }
     }
 
     remote function listAvailableProperties(ListRequest value) returns stream<PropertyList, error?>|error {
-        return error("listAvailableProperties is not implemented");
+        Property[] availableProperties = [];
+
+        foreach InternalProperty p in propertiesTable {
+
+            // check if the property matches the location and price fr
+            // if the location is empty or the max_price is 0.0 then its a match for everything
+            // so we just return alles fr
+            boolean locationMatches = value.location == "" || p.location == value.location;
+            boolean priceMatches = value.max_price == 0.0 || p.pricePerNight <= value.max_price;
+            if p.status == "AVAILABLE" && locationMatches && priceMatches {
+                availableProperties.push({
+                    property_id: p.propertyId,
+                    name: p.name,
+                    location: p.location,
+                    property_type: p.propertyType,
+                    price_per_night: p.pricePerNight,
+                    status: <PropertyStatus>p.status
+                });
+            }
+        }
+
+        PropertyList[] propertyLists = [{properties: availableProperties}];
+        return propertyLists.toStream();
     }
 }
 
