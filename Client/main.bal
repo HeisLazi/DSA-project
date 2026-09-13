@@ -193,3 +193,11 @@ function scheduleManagerMenu() {
     }
 }
 
+function handleAssetResult(Asset|error result) {
+    if result is error {
+        print ApiError(result);
+        return;
+    }
+    io:println("Success. Updated asset:");
+    printAssetDetail(result);
+}
