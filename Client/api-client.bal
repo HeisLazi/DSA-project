@@ -54,5 +54,22 @@ function fetchOverdueAssets() returns Asset[]|error {
 }
 
 function fetchAssetsFiltered(string? institution, string? site) returns Asset[]|error {
+    string query = "";
+    if institution is string {
+        string encoded = check url:encode(institution, "UTF-8");
+        query += (query == "" ? "?" : "&") + "institution=" + encoded;
+    }
+    if site is string {
+        string encoded = check url:encode(site, "UTF-8");
+        query += (query == "" ? "?" : "&") + "site=" + encoded;
+    }
+    http:Response resp = check apiClient-> get("/assets" + query);
+    return parseAssetArray(resp);
+        
     return error("not implemented");
+}
+
+function loanAsset(string, assetTag, LoanRequest req) returns Asset|error {
+    http:Response resp = check apiClient-> post("/assets/" + assetTag + "/loan", req.toJson());
+    return pureAsset(resp);
 }
