@@ -117,5 +117,79 @@ function campusViewMenu() {
 // the result. Invalid options simply return without making an API call.
 
 function loanBookMenu() {
-    
+    function loanBookMenu() {
+    io:println("");
+    io:println("-- Loan / Book / Return --");
+    io:println("1) Loan or book an asset");
+    io:println("2) Return an asset");
+    io:println("0) Back");
+    string choice = io:readln("Select an option: ").trim();
+
+    if choice == "1" {
+        string assetTag = io:readln("Asset tag: ").trim();
+        string borrower = io:readln("Borrower / requester name: ").trim();
+        string purpose = io:readln("Purpose (e.g. loan, meeting, lab session): ").trim();
+        string due = io:readln("Due date (YYYY-MM-DD): ").trim();
+        LoanRequest req = {borrowerName: borrower, purpose: purpose, dueDate: due};
+        Asset|error result = loanAsset(assetTag, req);
+        if result is error {
+            printApiError(result);
+            return;
+        }
+        io:println("Loaned/booked successfully:");
+        printAssetDetail(result);
+    } else if choice == "2" {
+        string assetTag = io:readln("Asset tag to return: ").trim();
+        Asset|error result = returnAsset(assetTag);
+        if result is error {
+            printApiError(result);
+            return;
+        }
+        io:println("Returned successfully:");
+        printAssetDetail(result);
+    } else if choice != "0" {
+        io:println("Invalid option.");
+    }
 }
+}
+
+//Provides a sub-menu for adding, updating, or removing an asset
+// schedule. Each action collects the information it needs, builds the
+// appropriate request when necessary, and sends it to the API. The shared
+// handleAssetResult() helper is used to process the results consistently
+// instead of repeating the same error-handling logic in each branch.
+function scheduleManagerMenu() {
+    io:println("");
+    io:println("-- Schedule Manager --");
+    io:println("1) Add a schedule");
+    io:println("2) Update a schedule");
+    io:println("3) Remove a schedule");
+    io:println("0) Back");
+    string choice = io:readln("Select an option: ").trim();
+    if choice == "0" {
+        return;
+    }
+
+    string assetTag = io:readln("Asset tag: ").trim();
+
+    if choice == "1" {
+        string t = io:readln("Type (MAINTENANCE/BOOKING/etc): ").trim();
+        string due = io:readln("Due date (YYYY-MM-DD): ").trim();
+        string desc = io:readln("Description: ").trim();
+        ScheduleRequest req = {'type: t, dueDate: due, description: desc};
+        handleAssetResult(addSchedule(assetTag, req));
+    } else if choice == "2" {
+        string scheduleId = io:readln("Schedule ID: ").trim();
+        string t = io:readln("New type: ").trim();
+        string due = io:readln("New due date (YYYY-MM-DD): ").trim();
+        string desc = io:readln("New description: ").trim();
+        ScheduleRequest req = {'type: t, dueDate: due, description: desc};
+        handleAssetResult(updateSchedule(assetTag, scheduleId, req));
+    } else if choice == "3" {
+        string scheduleId = io:readln("Schedule ID: ").trim();
+        handleAssetResult(removeSchedule(assetTag, scheduleId));
+    } else {
+        io:println("Invalid option.");
+    }
+}
+
