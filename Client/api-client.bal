@@ -50,7 +50,7 @@ function fetchAllAssets() returns Asset[]|error {
 
 function fetchOverdueAssets() returns Asset[]|error {
     http:Response resp = check apiClient-> get("/assets/overdue");
-    return error("not implemented");
+    return parseAssetArray(resp);
 }
 
 function fetchAssetsFiltered(string? institution, string? site) returns Asset[]|error {
@@ -66,10 +66,30 @@ function fetchAssetsFiltered(string? institution, string? site) returns Asset[]|
     http:Response resp = check apiClient-> get("/assets" + query);
     return parseAssetArray(resp);
         
-    return error("not implemented");
+
 }
 
 function loanAsset(string, assetTag, LoanRequest req) returns Asset|error {
     http:Response resp = check apiClient-> post("/assets/" + assetTag + "/loan", req.toJson());
-    return pureAsset(resp);
+    return parseAsset(resp);
+}
+
+function returnAsset(string assetTag) returns Asset|error {
+    http:Response resp = check apiClient-> post("/assets/" + assetTag + "/return", {});
+    return parseAsset(resp);
+}
+
+function addSchedule(string assetTag, ScheduleRequest req) returns Asset|error {
+    http:Response resp = check apiClient-> post("/assets/" + assetTag + "/schedule", req.toJson());
+    return parseAsset(resp);
+}
+
+function updateSchedule(string assetTag, string scheduleId, ScheduleRequest req) returns Asset|error {
+    http:Response resp = check apiClient->put("/assets/" + assetTag + "/schedules/" + scheduleId, req.toJson());
+    return parseAsset(resp);
+}
+
+function removeSchedule(string assetTag, string scheduleId) returns Asset|error {
+    http:Response resp = check apiClient->delete("/assets/" + assetTag + "/schedules/" + scheduleId);
+    return parseAsset(resp);
 }
