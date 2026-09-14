@@ -28,10 +28,53 @@ async function loadAssets() {
 
         const assets = await response.json();
 
-        console.log(assets);
+        displayAssets(assets);
     } catch (error) {
         contentArea.innerHTML = `<p>${error.message}</p>`;
     }
+}
+
+function displayAssets(assets) {
+
+    if (assets.length === 0) {
+        contentArea.innerHTML = "<p>No assets are currently registered.</p>";
+        return;
+    }
+
+    let table = `
+        <table class="asset-table">
+            <thead>
+                <tr>
+                    <th>Asset Tag</th>
+                    <th>Name</th>
+                    <th>Institution</th>
+                    <th>Site</th>
+                    <th>Status</th>
+                    <th>Date Acquired</th>
+                </tr>
+            </thead>
+            <tbody>
+    `;
+
+    for (const asset of assets) {
+        table += `
+            <tr>
+                <td>${asset.assetTag}</td>
+                <td>${asset.name}</td>
+                <td>${asset.institution}</td>
+                <td>${asset.site}</td>
+                <td>${asset.status}</td>
+                <td>${asset.dateAcquired}</td>
+            </tr>
+        `;
+    }
+
+    table += `
+            </tbody>
+        </table>
+    `;
+
+    contentArea.innerHTML = table;
 }
 
 assetsBtn.addEventListener("click", loadAssets);
