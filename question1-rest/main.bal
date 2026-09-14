@@ -1,4 +1,6 @@
 import ballerina/http;
 
-listener http:Listener assetListener = new(8080); // opens port 8080
+// port 9090 to match the client's default serviceUrl (http://localhost:9090/api); override with Config.toml if needed
+configurable int servicePort = 9090;
 
+listener http:Listener assetListener = new (servicePort);
