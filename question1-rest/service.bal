@@ -32,7 +32,7 @@ resource function post .(@http:Payload Asset newAsset) returns Asset {
           return notFound("Asset not found: " + assetTag);
      }
  }
- resource function get overdue() returns json[]{
+ resource function get overdue() returns Asset[]{
     return getOverdueSchedules();
  }
 

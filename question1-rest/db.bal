@@ -218,21 +218,22 @@ function returnAsset(string assetTag) returns Asset? {
     return updatedAsset;
 }
 
-function getOverdueSchedules() returns json[] {
+// contract says GET /assets/overdue returns 200 Asset[] - this used to return a flat list
+// of schedule summaries instead, which broke the client's Asset[] parsing. Fixed to return
+// the full Asset objects that have at least one overdue schedule.
+function getOverdueSchedules() returns Asset[] {
     string today = time:utcToString(time:utcNow()).substring(0, 10); // Get current date in YYYY-MM-DD format
-    json[] overdue = [];
+    Asset[] overdue = [];
 
     foreach Asset asset in getAllAssets() {
-        foreach MaintenanceSchedule schedule in asset.schedules { 
-            if schedule.dueDate < today { 
-                overdue.push ({
-                    assetTag: asset.assetTag,
-                    assetName: asset.name,
-                    scheduleId: schedule.scheduleId,
-                    description: schedule.description,
-                    dueDate: schedule.dueDate 
-                });
+        boolean hasOverdue = false;
+        foreach MaintenanceSchedule schedule in asset.schedules {
+            if schedule.dueDate < today {
+                hasOverdue = true;
             }
+        }
+        if hasOverdue {
+            overdue.push(asset);
         }
     }
     return overdue;
