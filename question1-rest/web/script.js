@@ -1,4 +1,4 @@
-const API_URL = "http://localhost:9090/api";
+const API_URL = "http://localhost:9090";
 
 const assetsBtn = document.getElementById("assetsBtn");
 const campusBtn = document.getElementById("campusBtn");
