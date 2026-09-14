@@ -1,6 +1,6 @@
 import ballerina/http;
 
-service /assets on assetListener {
+service /api/assets on assetListener {
      // example: resource function get test() returns string {
      //   return "Hello, World!";
      // everything inside service /assets on assetListener handles requests to paths starting with /assets. 
