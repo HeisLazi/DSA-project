@@ -22,6 +22,7 @@ public type NewScheduleInput record {|
 public type WorkOrderTask record {|
     string taskId;
     string description;
+    boolean done = false;
    |};
 
 public type WorkOrder record {|
