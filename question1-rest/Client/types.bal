@@ -41,10 +41,6 @@ public type Asset record {
     Component[] components = [];
     Schedule[] schedules = [];
     WorkOrder[] workOrders = [];
-    // who currently has the asset - populated after a loan, cleared on return
-    string? borrowerName = ();
-    string? purpose = ();
-    string? loanDueDate = ();
 };
 
 
