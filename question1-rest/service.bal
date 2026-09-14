@@ -63,13 +63,21 @@ resource function post .(@http:Payload Asset newAsset) returns Asset {
     }
    }
 
-   resource function post[string assetTag]/schedules(@http:Payload MaintenanceSchedule newSchedule) returns Asset|http:NotFound {
-    Asset? updated = addSchedule(assetTag, newSchedule);
+   resource function post[string assetTag]/schedules(@http:Payload NewScheduleInput input) returns Asset|http:NotFound {
+    Asset? updated = addSchedule(assetTag, input);
     if updated is Asset { 
         return updated; 
     } else {
         return http:NOT_FOUND;
     }
+    }
+
+    resource function put [string assetTag]/schedules/[string scheduleId](@http:Payload NewScheduleInput input) returns Asset|http:NotFound {
+    Asset? updated = updateSchedule(assetTag, scheduleId, input);
+    if updated is Asset {
+        return updated;
+    }
+    return http:NOT_FOUND;
     }
 
 resource function delete [string assetTag]/schedules/[string scheduleId]() returns Asset|http:NotFound {

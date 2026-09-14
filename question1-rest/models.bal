@@ -11,6 +11,14 @@ public type MaintenanceSchedule record {|
     string description;
 |};   
 
+// body the client sends to create/update a schedule - scheduleId is generated server-side,
+// not supplied by the client (the client only ever sends type/dueDate/description)
+public type NewScheduleInput record {|
+    string 'type;
+    string dueDate;
+    string description;
+|};
+
 public type WorkOrderTask record {|
     string taskId;
     string description;

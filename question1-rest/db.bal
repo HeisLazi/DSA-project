@@ -44,11 +44,23 @@ function filterAssets(string? status, string? institution, string? site) returns
     });
 }
 
-function addSchedule(string assetTag, MaintenanceSchedule newSchedule) returns Asset? {
+int scheduleSeq = 0;
+function nextScheduleId() returns string {
+    scheduleSeq += 1;
+    return string `SCH-${scheduleSeq}`;
+}
+
+function addSchedule(string assetTag, NewScheduleInput input) returns Asset? {
     Asset? asset = getAsset(assetTag);
     if asset is () {
         return ();
     } else {
+        MaintenanceSchedule newSchedule = {
+            scheduleId: nextScheduleId(),
+            'type: input.'type,
+            dueDate: input.dueDate,
+            description: input.description
+        };
         Asset updatedAsset = {
             assetTag: asset.assetTag,
             name: asset.name,
@@ -65,6 +77,37 @@ function addSchedule(string assetTag, MaintenanceSchedule newSchedule) returns A
         _ = updateAsset(assetTag, updatedAsset);
         return updatedAsset;
     }
+}
+
+function updateSchedule(string assetTag, string scheduleId, NewScheduleInput input) returns Asset? {
+    Asset? asset = getAsset(assetTag);
+    if asset is () {
+        return ();
+    }
+    boolean exists = false;
+    foreach MaintenanceSchedule s in asset.schedules {
+        if s.scheduleId == scheduleId {
+            exists = true;
+        }
+    }
+    if !exists {
+        return ();
+    }
+    MaintenanceSchedule[] updatedSchedules = asset.schedules.map(function(MaintenanceSchedule s) returns MaintenanceSchedule {
+        if s.scheduleId == scheduleId {
+            return {
+                scheduleId: s.scheduleId,
+                'type: input.'type,
+                dueDate: input.dueDate,
+                description: input.description
+            };
+        }
+        return s;
+    });
+    Asset updatedAsset = asset.clone();
+    updatedAsset.schedules = updatedSchedules;
+    _ = updateAsset(assetTag, updatedAsset);
+    return updatedAsset;
 }
 
     function removeSchedule(string assetTag, string scheduleId) returns Asset? { 
