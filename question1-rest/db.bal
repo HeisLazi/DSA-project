@@ -344,11 +344,11 @@ function addTaskToWorkOrder(string assetTag, string orderId, string description)
         return updatedAsset;
     }
 }
-// --- Institutions (separate resource per the "Manage institutions" mark item) ---
+//Institutions
 
 map<Institution> institutions = {};
 
-function addInstitution(Institution institution) {
+function addInstitution(Institution institution) { 
     institutions[institution.name] = institution;
 }
 

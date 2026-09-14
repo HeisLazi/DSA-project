@@ -138,7 +138,7 @@ function notFound(string message) returns http:NotFound {
     return {body: {message: message}};
 }
 
-// separate resource per the contract's "Manage institutions" mark item - not called by the CLI client
+// separate resource per the contract's "Manage institutions" 
 service /api/institutions on assetListener {
 
     resource function get .() returns Institution[] {
