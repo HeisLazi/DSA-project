@@ -159,5 +159,64 @@ async function addAsset(event) {
     }
 }
 
+function showCampusView() {
+    pageTitle.textContent = "Campus View";
+    pageDescription.textContent =
+        "Filter resources by institution and campus.";
+
+    message.textContent = "";
+
+    contentArea.innerHTML = `
+        <form id="campusForm">
+            <label for="campusInstitution">Institution</label>
+            <input type="text" id="campusInstitution" required>
+
+            <label for="campusSite">Site / Campus</label>
+            <input type="text" id="campusSite">
+
+            <button type="submit">Search</button>
+        </form>
+
+        <div id="campusResults"></div>
+    `;
+
+    document
+        .getElementById("campusForm")
+        .addEventListener("submit", filterCampusAssets);
+}
+
+async function filterCampusAssets(event) {
+    event.preventDefault();
+
+    const institution =
+        document.getElementById("campusInstitution").value;
+
+    const site =
+        document.getElementById("campusSite").value;
+
+    let url =
+        `${API_URL}/assets?institution=${encodeURIComponent(institution)}`;
+
+    if (site !== "") {
+        url += `&site=${encodeURIComponent(site)}`;
+    }
+
+    try {
+        const response = await fetch(url);
+
+        if (!response.ok) {
+            throw new Error("Failed to load campus assets.");
+        }
+
+        const assets = await response.json();
+
+        displayAssets(assets);
+
+    } catch (error) {
+        contentArea.innerHTML = `<p>${error.message}</p>`;
+    }
+}
+
 assetsBtn.addEventListener("click", loadAssets);
 addAssetBtn.addEventListener("click", showAddAssetForm);
+campusBtn.addEventListener("click", showCampusView);
