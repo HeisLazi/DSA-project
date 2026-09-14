@@ -298,8 +298,124 @@ function displayOverdueAssets(overdueItems) {
     contentArea.innerHTML = table;
 }
 
+function showLoanView() {
+    pageTitle.textContent = "Loan / Return";
+    pageDescription.textContent =
+        "Loan an available asset or return an asset currently on loan.";
+
+    message.textContent = "";
+    message.className = "";
+    refreshBtn.style.display = "none";
+
+    contentArea.innerHTML = `
+        <form id="loanForm">
+            <label for="loanAssetTag">Asset Tag</label>
+            <input type="text" id="loanAssetTag" required>
+
+            <label for="borrowerName">Borrower Name</label>
+            <input type="text" id="borrowerName" required>
+
+            <label for="loanPurpose">Purpose</label>
+            <input type="text" id="loanPurpose" required>
+
+            <label for="loanDueDate">Due Date</label>
+            <input type="date" id="loanDueDate" required>
+
+            <button type="submit">Loan Asset</button>
+            <button type="button" id="returnAssetBtn">Return Asset</button>
+        </form>
+    `;
+
+    document
+        .getElementById("loanForm")
+        .addEventListener("submit", loanAsset);
+
+    document
+        .getElementById("returnAssetBtn")
+        .addEventListener("click", returnAsset);
+}
+
+async function loanAsset(event) {
+    event.preventDefault();
+
+    const assetTag =
+        document.getElementById("loanAssetTag").value;
+
+    const loanRequest = {
+        borrowerName:
+            document.getElementById("borrowerName").value,
+        purpose:
+            document.getElementById("loanPurpose").value,
+        dueDate:
+            document.getElementById("loanDueDate").value
+    };
+
+    try {
+        const response = await fetch(
+            `${API_URL}/assets/${encodeURIComponent(assetTag)}/loan`,
+            {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(loanRequest)
+            }
+        );
+
+        if (!response.ok) {
+            throw new Error("Failed to loan asset.");
+        }
+
+        message.textContent =
+            `Asset ${assetTag} loaned successfully.`;
+        message.className = "success-message";
+
+        await loadAssets();
+
+    } catch (error) {
+        message.textContent = error.message;
+        message.className = "error-message";
+    }
+}
+
+async function returnAsset() {
+    const assetTag =
+        document.getElementById("loanAssetTag").value;
+
+    if (assetTag === "") {
+        message.textContent =
+            "Enter an asset tag before returning an asset.";
+        message.className = "error-message";
+        return;
+    }
+
+    try {
+        const response = await fetch(
+            `${API_URL}/assets/${encodeURIComponent(assetTag)}/return`,
+            {
+                method: "POST"
+            }
+        );
+
+        if (!response.ok) {
+            throw new Error("Failed to return asset.");
+        }
+
+        message.textContent =
+            `Asset ${assetTag} returned successfully.`;
+        message.className = "success-message";
+
+        await loadAssets();
+
+    } catch (error) {
+        message.textContent = error.message;
+        message.className = "error-message";
+    }
+}
+
 assetsBtn.addEventListener("click", loadAssets);
 addAssetBtn.addEventListener("click", showAddAssetForm);
 campusBtn.addEventListener("click", showCampusView);
 overdueBtn.addEventListener("click", loadOverdueAssets);
+loanBtn.addEventListener("click", showLoanView);
 refreshBtn.addEventListener("click", loadAssets);
