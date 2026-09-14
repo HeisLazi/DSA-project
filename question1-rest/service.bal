@@ -1,5 +1,13 @@
 import ballerina/http;
 
+@http:ServiceConfig {
+    cors: {
+        allowOrigins: ["http://127.0.0.1:5501"],
+        allowMethods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
+        allowHeaders: ["Content-Type"]
+    }
+}
+
 service /api/assets on assetListener {
      // example: resource function get test() returns string {
      //   return "Hello, World!";
