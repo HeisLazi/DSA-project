@@ -36,6 +36,24 @@ resource function post .(@http:Payload Asset newAsset) returns Asset {
     return getOverdueSchedules();
  }
 
+ // loan or book an asset
+ resource function post [string assetTag]/loan(@http:Payload LoanRequest loanReq) returns Asset|http:NotFound {
+    Asset? updated = loanAsset(assetTag, loanReq);
+    if updated is Asset {
+        return updated;
+    }
+    return http:NOT_FOUND;
+ }
+
+ // "return" is a reserved word in Ballerina, escaped as 'return - the path segment is still "return"
+ resource function post [string assetTag]/'return() returns Asset|http:NotFound {
+    Asset? updated = returnAsset(assetTag);
+    if updated is Asset {
+        return updated;
+    }
+    return http:NOT_FOUND;
+ }
+
  resource function delete [string assetTag]() returns http:Ok|http:NotFound { 
     if !assetExists(assetTag) {
         return http:NOT_FOUND;

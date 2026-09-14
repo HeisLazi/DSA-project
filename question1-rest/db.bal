@@ -144,6 +144,31 @@ function removeComponent(string assetTag, string compId) returns Asset? {
     }
 }
 
+// contract note: loan/booking should flip status to LOANED_OUT or OCCUPIED depending on
+// asset type, but there's currently no field distinguishing physical loans from bookings,
+// so this always sets LOANED_OUT for now - flagged for the team to confirm.
+function loanAsset(string assetTag, LoanRequest req) returns Asset? {
+    Asset? asset = getAsset(assetTag);
+    if asset is () {
+        return ();
+    }
+    Asset updatedAsset = asset.clone();
+    updatedAsset.status = "LOANED_OUT";
+    _ = updateAsset(assetTag, updatedAsset);
+    return updatedAsset;
+}
+
+function returnAsset(string assetTag) returns Asset? {
+    Asset? asset = getAsset(assetTag);
+    if asset is () {
+        return ();
+    }
+    Asset updatedAsset = asset.clone();
+    updatedAsset.status = "AVAILABLE";
+    _ = updateAsset(assetTag, updatedAsset);
+    return updatedAsset;
+}
+
 function getOverdueSchedules() returns json[] {
     string today = time:utcToString(time:utcNow()).substring(0, 10); // Get current date in YYYY-MM-DD format
     json[] overdue = [];

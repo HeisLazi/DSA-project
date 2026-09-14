@@ -48,3 +48,10 @@ public type NewWorkOrderInput record {|
 public type NewTaskInput record {|
     string description;
 |};
+
+// body for POST /assets/{assetTag}/loan
+public type LoanRequest record {|
+    string borrowerName;
+    string purpose;
+    string dueDate;
+|};
