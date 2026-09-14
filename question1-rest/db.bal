@@ -262,7 +262,7 @@ function addTaskToWorkOrder(string assetTag, string orderId, string description)
             }
             return wo;
         });
-        Asset updatedAsset = asset.clone();
+        Asset updatedAsset = asset.clone(); 
         updatedAsset.workOrders = updateOrders;
         _ = updateAsset(assetTag, updatedAsset);
         return updatedAsset;
