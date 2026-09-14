@@ -338,3 +338,26 @@ function addTaskToWorkOrder(string assetTag, string orderId, string description)
         return updatedAsset;
     }
 }
+// --- Institutions (separate resource per the "Manage institutions" mark item) ---
+
+map<Institution> institutions = {};
+
+function addInstitution(Institution institution) {
+    institutions[institution.name] = institution;
+}
+
+function getAllInstitutions() returns Institution[] {
+    return institutions.toArray();
+}
+
+function institutionExists(string name) returns boolean {
+    return institutions.hasKey(name);
+}
+
+function removeInstitution(string name) returns boolean {
+    if institutionExists(name) {
+        _ = institutions.remove(name);
+        return true;
+    }
+    return false;
+}

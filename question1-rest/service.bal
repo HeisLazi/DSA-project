@@ -137,3 +137,23 @@ resource function post [string assetTag]/workorders/[string orderId]/tasks(@http
 function notFound(string message) returns http:NotFound {
     return {body: {message: message}};
 }
+
+// separate resource per the contract's "Manage institutions" mark item - not called by the CLI client
+service /api/institutions on assetListener {
+
+    resource function get .() returns Institution[] {
+        return getAllInstitutions();
+    }
+
+    resource function post .(@http:Payload Institution newInstitution) returns Institution {
+        addInstitution(newInstitution);
+        return newInstitution;
+    }
+
+    resource function delete [string name]() returns http:Ok|http:NotFound {
+        if removeInstitution(name) {
+            return http:OK;
+        }
+        return notFound("Institution not found: " + name);
+    }
+}

@@ -69,3 +69,8 @@ public type LoanRequest record {|
 public type ErrorMessage record {|
     string message;
 |};
+// institutions are a separate resource per the "Manage institutions" mark item
+public type Institution record {|
+    string name;
+    string[] sites;
+|};
