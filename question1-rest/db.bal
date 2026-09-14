@@ -44,114 +44,27 @@ function filterAssets(string? status, string? institution, string? site) returns
     });
 }
 
-int scheduleSeq = 0;
-function nextScheduleId() returns string {
-    scheduleSeq += 1;
-    return string `SCH-${scheduleSeq}`;
-}
-// scheduleId is generated here, not supplied by the client, per the API contract's request body: { type, dueDate, description }
-function addSchedule(string assetTag, NewScheduleInput input) returns Asset? {
+function addSchedule(string assetTag, MaintenanceSchedule newSchedule) returns Asset? {
     Asset? asset = getAsset(assetTag);
     if asset is () {
         return ();
     } else {
-        MaintenanceSchedule newSchedule = {
-            scheduleId: nextScheduleId(),
-            'type: input.'type,
-            dueDate: input.dueDate,
-            description: input.description
+        Asset updatedAsset = {
+            assetTag: asset.assetTag,
+            name: asset.name,
+            description: asset.description,
+            institution: asset.institution,
+            site: asset.site,
+            dateAcquired: asset.dateAcquired,
+            lastMaintenanceDate: asset.lastMaintenanceDate,
+            status: asset.status,
+            components: asset.components,
+            schedules: [...asset.schedules, newSchedule],
+            workOrders: asset.workOrders
         };
-        Asset updatedAsset = asset.clone();
-        updatedAsset.schedules = [...asset.schedules, newSchedule];
         _ = updateAsset(assetTag, updatedAsset);
         return updatedAsset;
     }
-}
-
-function updateSchedule(string assetTag, string scheduleId, NewScheduleInput input) returns Asset? {
-    Asset? asset = getAsset(assetTag);
-    if asset is () {
-        return ();
-    }
-    boolean exists = false;
-    foreach MaintenanceSchedule s in asset.schedules {
-        if s.scheduleId == scheduleId {
-            exists = true;
-        }
-    }
-    if !exists {
-        return ();
-    }
-    MaintenanceSchedule[] updatedSchedules = asset.schedules.map(function(MaintenanceSchedule s) returns MaintenanceSchedule {
-        if s.scheduleId == scheduleId {
-            return {
-                scheduleId: s.scheduleId,
-                'type: input.'type,
-                dueDate: input.dueDate,
-                description: input.description
-            };
-        }
-        return s;
-    });
-    Asset updatedAsset = asset.clone();
-    updatedAsset.schedules = updatedSchedules;
-    _ = updateAsset(assetTag, updatedAsset);
-    return updatedAsset;
-}
-
-// NOTE for the team: the contract doesn't say where borrower/purpose/dueDate get stored,
-// and Asset has no borrower fields in the agreed sample payload, so for now this only flips
-// status. Flag with Person 2/3 whether we need to persist loan details on the asset.
-function loanAsset(string assetTag, LoanRequest req) returns Asset? {
-    Asset? asset = getAsset(assetTag);
-    if asset is () {
-        return ();
-    }
-    Asset updatedAsset = asset.clone();
-    updatedAsset.status = "LOANED_OUT";
-    updatedAsset.borrowerName = req.borrowerName;
-    updatedAsset.purpose = req.purpose;
-    updatedAsset.loanDueDate = req.dueDate;
-    _ = updateAsset(assetTag, updatedAsset);
-    return updatedAsset;
-}
-
-function returnAsset(string assetTag) returns Asset? {
-    Asset? asset = getAsset(assetTag);
-    if asset is () {
-        return ();
-    }
-    Asset updatedAsset = asset.clone();
-    updatedAsset.status = "AVAILABLE";
-    updatedAsset.borrowerName = ();
-    updatedAsset.purpose = ();
-    updatedAsset.loanDueDate = ();
-    _ = updateAsset(assetTag, updatedAsset);
-    return updatedAsset;
-}
-
-// --- Institutions (separate resource per the "Manage institutions" mark item) ---
-
-map<Institution> institutions = {};
-
-function addInstitution(Institution institution) {
-    institutions[institution.name] = institution;
-}
-
-function getAllInstitutions() returns Institution[] {
-    return institutions.toArray();
-}
-
-function institutionExists(string name) returns boolean {
-    return institutions.hasKey(name);
-}
-
-function removeInstitution(string name) returns boolean {
-    if institutionExists(name) {
-        _ = institutions.remove(name);
-        return true;
-    }
-    return false;
 }
 
     function removeSchedule(string assetTag, string scheduleId) returns Asset? { 
