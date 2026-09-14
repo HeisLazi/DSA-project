@@ -20,7 +20,7 @@ resource function post .(@http:Payload Asset newAsset) returns Asset {
     if (asset is Asset) {
         return asset;
     } else {
-        return http:NOT_FOUND;
+        return notFound("Asset not found: " + assetTag);
     }
  }
 
@@ -29,7 +29,7 @@ resource function post .(@http:Payload Asset newAsset) returns Asset {
     if (success) {
           return updatedAsset;
      } else {
-          return http:NOT_FOUND;
+          return notFound("Asset not found: " + assetTag);
      }
  }
  resource function get overdue() returns json[]{
@@ -42,7 +42,7 @@ resource function post .(@http:Payload Asset newAsset) returns Asset {
     if updated is Asset {
         return updated;
     }
-    return http:NOT_FOUND;
+    return notFound("Asset not found: " + assetTag);
  }
 
  // "return" is a reserved word in Ballerina, escaped as 'return - the path segment is still "return"
@@ -51,12 +51,12 @@ resource function post .(@http:Payload Asset newAsset) returns Asset {
     if updated is Asset {
         return updated;
     }
-    return http:NOT_FOUND;
+    return notFound("Asset not found: " + assetTag);
  }
 
  resource function delete [string assetTag]() returns http:Ok|http:NotFound { 
     if !assetExists(assetTag) {
-        return http:NOT_FOUND;
+        return notFound("Asset not found: " + assetTag);
     } else {
         deleteAsset(assetTag);
         return http:OK;
@@ -68,7 +68,7 @@ resource function post .(@http:Payload Asset newAsset) returns Asset {
     if updated is Asset { 
         return updated; 
     } else {
-        return http:NOT_FOUND;
+        return notFound("Asset not found: " + assetTag);
     }
     }
 
@@ -77,7 +77,7 @@ resource function post .(@http:Payload Asset newAsset) returns Asset {
     if updated is Asset {
         return updated;
     }
-    return http:NOT_FOUND;
+    return notFound("Asset or schedule not found");
     }
 
 resource function delete [string assetTag]/schedules/[string scheduleId]() returns Asset|http:NotFound {
@@ -85,7 +85,7 @@ resource function delete [string assetTag]/schedules/[string scheduleId]() retur
     if updated is Asset {
         return updated;
     }
-    return http:NOT_FOUND;
+    return notFound("Asset not found: " + assetTag);
 }
 
 resource function post [string assetTag]/components(@http:Payload Component newComponent) returns Asset|http:NotFound {
@@ -93,7 +93,7 @@ resource function post [string assetTag]/components(@http:Payload Component newC
     if updated is Asset {
         return updated;
     } else {
-        return http:NOT_FOUND;
+        return notFound("Asset not found: " + assetTag);
     }
 }
 
@@ -102,7 +102,7 @@ resource function delete [string assetTag]/components/[string componentId]() ret
     if updated is Asset {
         return updated;
     } else {
-        return http:NOT_FOUND;
+        return notFound("Asset not found: " + assetTag);
     }
 }
 
@@ -111,7 +111,7 @@ resource function post [string assetTag]/workorders(@http:Payload NewWorkOrderIn
     if updated is Asset {
         return updated;
     } else {
-        return http:NOT_FOUND;
+        return notFound("Asset not found: " + assetTag);
     }
 }
 
@@ -120,7 +120,7 @@ resource function patch [string assetTag]/workorders/[string orderId]() returns 
     if updated is Asset {
         return updated;
     } else {
-        return http:NOT_FOUND;
+        return notFound("Asset or work order not found");
     }
 }
 resource function post [string assetTag]/workorders/[string orderId]/tasks(@http:Payload NewTaskInput input) returns Asset|http:NotFound {
@@ -128,7 +128,12 @@ resource function post [string assetTag]/workorders/[string orderId]/tasks(@http
     if updated is Asset {
         return updated;
     } else {
-        return http:NOT_FOUND;
+        return notFound("Asset or work order not found");
     }
 }
+}
+
+// every non-2xx response returns { "message": "..." } per the API contract
+function notFound(string message) returns http:NotFound {
+    return {body: {message: message}};
 }

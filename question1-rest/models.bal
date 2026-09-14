@@ -63,3 +63,8 @@ public type LoanRequest record {|
     string purpose;
     string dueDate;
 |};
+
+// every non-2xx response body, per the API contract
+public type ErrorMessage record {|
+    string message;
+|};
