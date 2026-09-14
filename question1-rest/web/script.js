@@ -413,9 +413,198 @@ async function returnAsset() {
     }
 }
 
+function showScheduleView() {
+    pageTitle.textContent = "Schedule Manager";
+    pageDescription.textContent =
+        "Add, update or remove maintenance schedules for an asset.";
+
+    message.textContent = "";
+    message.className = "";
+    refreshBtn.style.display = "none";
+
+    contentArea.innerHTML = `
+        <h3>Add Schedule</h3>
+
+        <form id="addScheduleForm">
+            <label for="scheduleAssetTag">Asset Tag</label>
+            <input type="text" id="scheduleAssetTag" required>
+
+            <label for="scheduleType">Type</label>
+            <input type="text" id="scheduleType" value="MAINTENANCE" required>
+
+            <label for="scheduleDueDate">Due Date</label>
+            <input type="date" id="scheduleDueDate" required>
+
+            <label for="scheduleDescription">Description</label>
+            <input type="text" id="scheduleDescription" required>
+
+            <button type="submit">Add Schedule</button>
+        </form>
+
+        <h3>Update / Remove Schedule</h3>
+
+        <form id="manageScheduleForm">
+            <label for="manageAssetTag">Asset Tag</label>
+            <input type="text" id="manageAssetTag" required>
+
+            <label for="scheduleId">Schedule ID</label>
+            <input type="text" id="scheduleId" required>
+
+            <label for="updateType">Type</label>
+            <input type="text" id="updateType" value="MAINTENANCE">
+
+            <label for="updateDueDate">Due Date</label>
+            <input type="date" id="updateDueDate">
+
+            <label for="updateDescription">Description</label>
+            <input type="text" id="updateDescription">
+
+            <button type="button" id="updateScheduleBtn">
+                Update Schedule
+            </button>
+
+            <button type="button" id="removeScheduleBtn">
+                Remove Schedule
+            </button>
+        </form>
+    `;
+
+    document
+        .getElementById("addScheduleForm")
+        .addEventListener("submit", addSchedule);
+
+    document
+        .getElementById("updateScheduleBtn")
+        .addEventListener("click", updateSchedule);
+
+    document
+        .getElementById("removeScheduleBtn")
+        .addEventListener("click", removeSchedule);
+}
+
+async function addSchedule(event) {
+    event.preventDefault();
+
+    const assetTag =
+        document.getElementById("scheduleAssetTag").value;
+
+    const schedule = {
+        type: document.getElementById("scheduleType").value,
+        dueDate: document.getElementById("scheduleDueDate").value,
+        description:
+            document.getElementById("scheduleDescription").value
+    };
+
+    try {
+        const response = await fetch(
+            `${API_URL}/assets/${encodeURIComponent(assetTag)}/schedules`,
+            {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(schedule)
+            }
+        );
+
+        if (!response.ok) {
+            throw new Error("Failed to add schedule.");
+        }
+
+        message.textContent = "Schedule added successfully.";
+        message.className = "success-message";
+
+    } catch (error) {
+        message.textContent = error.message;
+        message.className = "error-message";
+    }
+}
+
+async function updateSchedule() {
+    const assetTag =
+        document.getElementById("manageAssetTag").value;
+
+    const scheduleId =
+        document.getElementById("scheduleId").value;
+
+    const schedule = {
+        type: document.getElementById("updateType").value,
+        dueDate: document.getElementById("updateDueDate").value,
+        description:
+            document.getElementById("updateDescription").value
+    };
+
+    if (assetTag === "" || scheduleId === "") {
+        message.textContent =
+            "Enter an asset tag and schedule ID.";
+        message.className = "error-message";
+        return;
+    }
+
+    try {
+        const response = await fetch(
+            `${API_URL}/assets/${encodeURIComponent(assetTag)}/schedules/${encodeURIComponent(scheduleId)}`,
+            {
+                method: "PUT",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(schedule)
+            }
+        );
+
+        if (!response.ok) {
+            throw new Error("Failed to update schedule.");
+        }
+
+        message.textContent = "Schedule updated successfully.";
+        message.className = "success-message";
+
+    } catch (error) {
+        message.textContent = error.message;
+        message.className = "error-message";
+    }
+}
+
+async function removeSchedule() {
+    const assetTag =
+        document.getElementById("manageAssetTag").value;
+
+    const scheduleId =
+        document.getElementById("scheduleId").value;
+
+    if (assetTag === "" || scheduleId === "") {
+        message.textContent =
+            "Enter an asset tag and schedule ID.";
+        message.className = "error-message";
+        return;
+    }
+
+    try {
+        const response = await fetch(
+            `${API_URL}/assets/${encodeURIComponent(assetTag)}/schedules/${encodeURIComponent(scheduleId)}`,
+            {
+                method: "DELETE"
+            }
+        );
+
+        if (!response.ok) {
+            throw new Error("Failed to remove schedule.");
+        }
+
+        message.textContent = "Schedule removed successfully.";
+        message.className = "success-message";
+
+    } catch (error) {
+        message.textContent = error.message;
+        message.className = "error-message";
+    }
+}
+
 assetsBtn.addEventListener("click", loadAssets);
 addAssetBtn.addEventListener("click", showAddAssetForm);
 campusBtn.addEventListener("click", showCampusView);
 overdueBtn.addEventListener("click", loadOverdueAssets);
 loanBtn.addEventListener("click", showLoanView);
+scheduleBtn.addEventListener("click", showScheduleView);
 refreshBtn.addEventListener("click", loadAssets);
