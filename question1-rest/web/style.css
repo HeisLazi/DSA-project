@@ -82,3 +82,11 @@ body {
 .asset-table th {
     background-color: #f4f4f4;
 }
+
+.success-message {
+    color: green;
+}
+
+.error-message {
+    color: red;
+}

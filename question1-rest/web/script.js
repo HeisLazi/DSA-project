@@ -14,6 +14,7 @@ const contentArea = document.getElementById("contentArea");
 const message = document.getElementById("message");
 
 async function loadAssets() {
+    refreshBtn.style.display = "block";
     pageTitle.textContent = "All Assets";
     pageDescription.textContent =
         "View resources across all institutions and campuses.";
@@ -79,6 +80,9 @@ function displayAssets(assets) {
 }
 
 function showAddAssetForm() {
+    refreshBtn.style.display = "none";
+    message.textContent = "";
+    message.className = "";
     pageTitle.textContent = "Add Asset";
     pageDescription.textContent =
         "Register a new resource in the system.";
@@ -102,6 +106,9 @@ function showAddAssetForm() {
 
             <label for="dateAcquired">Date Acquired</label>
             <input type="date" id="dateAcquired" required>
+
+            <label for="lastMaintenanceDate">Last Maintenance Date</label>
+            <input type="date" id="lastMaintenanceDate" required>
 
             <label for="status">Status</label>
             <select id="status">
@@ -132,6 +139,8 @@ async function addAsset(event) {
         site: document.getElementById("site").value,
         status: document.getElementById("status").value,
         dateAcquired: document.getElementById("dateAcquired").value,
+        lastMaintenanceDate: 
+            document.getElementById("lastMaintenanceDate").value,
         components: [],
         schedules: [],
         workOrders: []
@@ -147,19 +156,24 @@ async function addAsset(event) {
         });
 
         if (!response.ok) {
+            const errorText = await response.text();
+            console.log(errorText);
             throw new Error("Failed to add asset.");
         }
 
         message.textContent = "Asset added successfully.";
+        message.className = "success-message";
 
         await loadAssets();
 
     } catch (error) {
         message.textContent = error.message;
+        message.className = "error-message";
     }
 }
 
 function showCampusView() {
+    refreshBtn.style.display = "block";
     pageTitle.textContent = "Campus View";
     pageDescription.textContent =
         "Filter resources by institution and campus.";
@@ -218,6 +232,7 @@ async function filterCampusAssets(event) {
 }
 
 async function loadOverdueAssets() {
+    refreshBtn.style.display = "block";
     pageTitle.textContent = "Overdue Maintenance";
     pageDescription.textContent =
         "View assets with maintenance schedules that are past their due date.";
@@ -254,10 +269,10 @@ function displayOverdueAssets(overdueItems) {
             <thead>
                 <tr>
                     <th>Asset Tag</th>
-                    <th>Asset Name</th>
-                    <th>Schedule ID</th>
-                    <th>Description</th>
-                    <th>Due Date</th>
+                    <th>Name</th>
+                    <th>Institution</th>
+                    <th>Site</th>
+                    <th>Status</th>
                 </tr>
             </thead>
             <tbody>
@@ -267,10 +282,10 @@ function displayOverdueAssets(overdueItems) {
         table += `
             <tr>
                 <td>${item.assetTag}</td>
-                <td>${item.assetName}</td>
-                <td>${item.scheduleId}</td>
-                <td>${item.description}</td>
-                <td>${item.dueDate}</td>
+                <td>${item.name}</td>
+                <td>${item.institution}</td>
+                <td>${item.site}</td>
+                <td>${item.status}</td>
             </tr>
         `;
     }
@@ -287,3 +302,4 @@ assetsBtn.addEventListener("click", loadAssets);
 addAssetBtn.addEventListener("click", showAddAssetForm);
 campusBtn.addEventListener("click", showCampusView);
 overdueBtn.addEventListener("click", loadOverdueAssets);
+refreshBtn.addEventListener("click", loadAssets);
