@@ -197,6 +197,9 @@ function loanAsset(string assetTag, LoanRequest req) returns Asset? {
     }
     Asset updatedAsset = asset.clone();
     updatedAsset.status = "LOANED_OUT";
+    updatedAsset.borrowerName = req.borrowerName;
+    updatedAsset.purpose = req.purpose;
+    updatedAsset.loanDueDate = req.dueDate;
     _ = updateAsset(assetTag, updatedAsset);
     return updatedAsset;
 }
@@ -208,6 +211,9 @@ function returnAsset(string assetTag) returns Asset? {
     }
     Asset updatedAsset = asset.clone();
     updatedAsset.status = "AVAILABLE";
+    updatedAsset.borrowerName = ();
+    updatedAsset.purpose = ();
+    updatedAsset.loanDueDate = ();
     _ = updateAsset(assetTag, updatedAsset);
     return updatedAsset;
 }

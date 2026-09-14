@@ -43,6 +43,11 @@ public type Asset record {|
     string site; 
     string dateAcquired; 
     string lastMaintenanceDate;
+    // who currently has the asset, set by POST /loan and cleared by POST /return - not in the original
+    // contract sample, added because the loan info was otherwise being thrown away
+    string? borrowerName = ();
+    string? purpose = ();
+    string? loanDueDate = ();
     Component[] components; // list of components associated with the asset
     MaintenanceSchedule[] schedules; // list of maintenance schedules for the asset
     WorkOrder[] workOrders; // list of work orders associated with the asset
