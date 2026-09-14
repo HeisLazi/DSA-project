@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <link rel="stylesheet" href="style.css">
+
+    <title>Library Resource Management System</title>
+</head>
+
+<body>
+
+    <header class="header">
+        <h1>Library Resource Management System</h1>
+        <p>Ministry Resource Dashboard</p>
+    </header>
+
+    <main class="container">
+
+        <nav class="navigation">
+            <button id="assetsBtn">All Assets</button>
+            <button id="campusBtn">Campus View</button>
+            <button id="overdueBtn">Overdue</button>
+            <button id="loanBtn">Loan / Return</button>
+            <button id="scheduleBtn">Schedules</button>
+        </nav>
+
+        <section class="content">
+
+            <div class="content-header">
+                <div>
+                    <h2 id="pageTitle">All Assets</h2>
+                    <p id="pageDescription">
+                        View resources across all institutions and campuses.
+                    </p>
+                </div>
+
+                <button id="refreshBtn">Refresh</button>
+            </div>
+
+            <div id="message"></div>
+
+            <div id="contentArea">
+                <!-- Asset information will be displayed here -->
+            </div>
+
+        </section>
+
+    </main>
+
+    <script src="script.js"></script>
+    
+</body>
+
+</html>
