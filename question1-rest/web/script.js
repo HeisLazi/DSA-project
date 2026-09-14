@@ -1,6 +1,7 @@
 const API_URL = "http://localhost:9090";
 
 const assetsBtn = document.getElementById("assetsBtn");
+const addAssetBtn = document.getElementById("addAssetBtn");
 const campusBtn = document.getElementById("campusBtn");
 const overdueBtn = document.getElementById("overdueBtn");
 const loanBtn = document.getElementById("loanBtn");
@@ -77,4 +78,86 @@ function displayAssets(assets) {
     contentArea.innerHTML = table;
 }
 
+function showAddAssetForm() {
+    pageTitle.textContent = "Add Asset";
+    pageDescription.textContent =
+        "Register a new resource in the system.";
+
+    contentArea.innerHTML = `
+        <form id="addAssetForm">
+            <label for="assetTag">Asset Tag</label>
+            <input type="text" id="assetTag" required>
+
+            <label for="assetName">Name</label>
+            <input type="text" id="assetName" required>
+
+            <label for="description">Description</label>
+            <input type="text" id="description" required>
+
+            <label for="institution">Institution</label>
+            <input type="text" id="institution" required>
+
+            <label for="site">Site / Campus</label>
+            <input type="text" id="site" required>
+
+            <label for="dateAcquired">Date Acquired</label>
+            <input type="date" id="dateAcquired" required>
+
+            <label for="status">Status</label>
+            <select id="status">
+                <option value="AVAILABLE">AVAILABLE</option>
+                <option value="LOANED_OUT">LOANED OUT</option>
+                <option value="OCCUPIED">OCCUPIED</option>
+                <option value="UNDER_MAINTENANCE">UNDER MAINTENANCE</option>
+                <option value="DISPOSED">DISPOSED</option>
+            </select>
+
+            <button type="submit">Add Asset</button>
+        </form>
+    `;
+
+    document
+        .getElementById("addAssetForm")
+        .addEventListener("submit", addAsset);
+}
+
+async function addAsset(event) {
+    event.preventDefault();
+
+    const newAsset = {
+        assetTag: document.getElementById("assetTag").value,
+        name: document.getElementById("assetName").value,
+        description: document.getElementById("description").value,
+        institution: document.getElementById("institution").value,
+        site: document.getElementById("site").value,
+        status: document.getElementById("status").value,
+        dateAcquired: document.getElementById("dateAcquired").value,
+        components: [],
+        schedules: [],
+        workOrders: []
+    };
+
+    try {
+        const response = await fetch(`${API_URL}/assets`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(newAsset)
+        });
+
+        if (!response.ok) {
+            throw new Error("Failed to add asset.");
+        }
+
+        message.textContent = "Asset added successfully.";
+
+        await loadAssets();
+
+    } catch (error) {
+        message.textContent = error.message;
+    }
+}
+
 assetsBtn.addEventListener("click", loadAssets);
+addAssetBtn.addEventListener("click", showAddAssetForm);
