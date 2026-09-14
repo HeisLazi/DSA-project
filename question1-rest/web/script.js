@@ -217,6 +217,73 @@ async function filterCampusAssets(event) {
     }
 }
 
+async function loadOverdueAssets() {
+    pageTitle.textContent = "Overdue Maintenance";
+    pageDescription.textContent =
+        "View assets with maintenance schedules that are past their due date.";
+
+    message.textContent = "";
+    contentArea.innerHTML = "<p>Loading overdue items...</p>";
+
+    try {
+        const response = await fetch(`${API_URL}/assets/overdue`);
+
+        if (!response.ok) {
+            throw new Error("Failed to load overdue items.");
+        }
+
+        const overdueItems = await response.json();
+
+        displayOverdueAssets(overdueItems);
+
+    } catch (error) {
+        contentArea.innerHTML = `<p>${error.message}</p>`;
+    }
+}
+
+function displayOverdueAssets(overdueItems) {
+
+    if (overdueItems.length === 0) {
+        contentArea.innerHTML =
+            "<p>There are currently no overdue maintenance schedules.</p>";
+        return;
+    }
+
+    let table = `
+        <table class="asset-table">
+            <thead>
+                <tr>
+                    <th>Asset Tag</th>
+                    <th>Asset Name</th>
+                    <th>Schedule ID</th>
+                    <th>Description</th>
+                    <th>Due Date</th>
+                </tr>
+            </thead>
+            <tbody>
+    `;
+
+    for (const item of overdueItems) {
+        table += `
+            <tr>
+                <td>${item.assetTag}</td>
+                <td>${item.assetName}</td>
+                <td>${item.scheduleId}</td>
+                <td>${item.description}</td>
+                <td>${item.dueDate}</td>
+            </tr>
+        `;
+    }
+
+    table += `
+            </tbody>
+        </table>
+    `;
+
+    contentArea.innerHTML = table;
+}
+
 assetsBtn.addEventListener("click", loadAssets);
 addAssetBtn.addEventListener("click", showAddAssetForm);
 campusBtn.addEventListener("click", showCampusView);
+overdueBtn.addEventListener("click", loadOverdueAssets);
