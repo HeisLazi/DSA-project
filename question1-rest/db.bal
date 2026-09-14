@@ -61,19 +61,8 @@ function addSchedule(string assetTag, NewScheduleInput input) returns Asset? {
             dueDate: input.dueDate,
             description: input.description
         };
-        Asset updatedAsset = {
-            assetTag: asset.assetTag,
-            name: asset.name,
-            description: asset.description,
-            institution: asset.institution,
-            site: asset.site,
-            dateAcquired: asset.dateAcquired,
-            lastMaintenanceDate: asset.lastMaintenanceDate,
-            status: asset.status,
-            components: asset.components,
-            schedules: [...asset.schedules, newSchedule],
-            workOrders: asset.workOrders
-        };
+        Asset updatedAsset = asset.clone();
+        updatedAsset.schedules = [...updatedAsset.schedules, newSchedule];
         _ = updateAsset(assetTag, updatedAsset);
         return updatedAsset;
     }
@@ -118,19 +107,8 @@ function updateSchedule(string assetTag, string scheduleId, NewScheduleInput inp
             MaintenanceSchedule[] updatedSchedules = asset.schedules.filter(function (MaintenanceSchedule s) returns boolean {
                 return s.scheduleId != scheduleId;
             });
-            Asset updatedAsset = {
-                assetTag: asset.assetTag,
-                name: asset.name,
-                description: asset.description,
-                institution: asset.institution,
-                site: asset.site,
-                dateAcquired: asset.dateAcquired,
-                lastMaintenanceDate: asset.lastMaintenanceDate,
-                status: asset.status,
-                components: asset.components,
-                schedules: updatedSchedules,
-                workOrders: asset.workOrders
-            };
+            Asset updatedAsset = asset.clone();
+            updatedAsset.schedules = updatedSchedules;
             _ = updateAsset(assetTag, updatedAsset);
             return updatedAsset;
                }
@@ -142,19 +120,8 @@ function addComponent(string assetTag, Component newComponent) returns Asset? {
     if asset is () { 
         return (); 
     } else {
-        Asset updatedAsset = {
-            assetTag: asset.assetTag,
-            name: asset.name,
-            description: asset.description,
-            institution: asset.institution,
-            site: asset.site,
-            dateAcquired: asset.dateAcquired,
-            lastMaintenanceDate: asset.lastMaintenanceDate,
-            status: asset.status,
-            components: [...asset.components, newComponent],
-            schedules: asset.schedules,
-            workOrders: asset.workOrders
-        };
+        Asset updatedAsset = asset.clone();
+        updatedAsset.components = [...updatedAsset.components, newComponent];
         _ = updateAsset(assetTag, updatedAsset);
         return updatedAsset;
     }
@@ -169,19 +136,8 @@ function removeComponent(string assetTag, string compId) returns Asset? {
         Component[] updatedComponents = asset.components.filter(function (Component c) returns boolean {
             return c.compId != compId;
         });
-        Asset updatedAsset = {
-            assetTag: asset.assetTag,
-            name: asset.name,
-            description: asset.description,
-            institution: asset.institution,
-            site: asset.site,
-            dateAcquired: asset.dateAcquired,
-            lastMaintenanceDate: asset.lastMaintenanceDate,
-            status: asset.status,
-            components: updatedComponents,
-            schedules: asset.schedules,
-            workOrders: asset.workOrders
-        };
+        Asset updatedAsset = asset.clone();
+        updatedAsset.components = updatedComponents;
         _ = updateAsset(assetTag, updatedAsset);
         return updatedAsset;
     }
@@ -258,19 +214,8 @@ function openWorkOrder(string assetTag, string compId, string scheduleId, string
             description: description,
             tasks: []
         };
-        Asset updatedAsset = {
-            assetTag: asset.assetTag,
-            name: asset.name,
-            description: asset.description,
-            institution: asset.institution,
-            site: asset.site,
-            dateAcquired: asset.dateAcquired,
-            lastMaintenanceDate: asset.lastMaintenanceDate,
-            status: asset.status,
-            components: asset.components,
-            schedules: asset.schedules,
-            workOrders: [...asset.workOrders, newOrder]
-        };
+        Asset updatedAsset = asset.clone();
+        updatedAsset.workOrders = [...updatedAsset.workOrders, newOrder];
         _ = updateAsset(assetTag, updatedAsset);
         return updatedAsset;
     }
@@ -288,19 +233,8 @@ function closeWorkOrder(string assetTag, string orderId) returns Asset? {
     }
     return wo;
 });
-        Asset updatedAsset = {
-            assetTag: asset.assetTag,
-            name: asset.name,
-            description: asset.description,
-            institution: asset.institution,
-            site: asset.site,
-            dateAcquired: asset.dateAcquired,
-            lastMaintenanceDate: asset.lastMaintenanceDate,
-            status: asset.status,
-            components: asset.components,
-            schedules: asset.schedules,
-            workOrders: updatedOrders
-        };
+        Asset updatedAsset = asset.clone();
+        updatedAsset.workOrders = updatedOrders;
         _ = updateAsset(assetTag, updatedAsset);
         return updatedAsset;
     }
@@ -328,19 +262,8 @@ function addTaskToWorkOrder(string assetTag, string orderId, string description)
             }
             return wo;
         });
-        Asset updatedAsset = {
-            assetTag: asset.assetTag,
-            name: asset.name,
-            description: asset.description,
-            institution: asset.institution,
-            site: asset.site,
-            dateAcquired: asset.dateAcquired,
-            lastMaintenanceDate: asset.lastMaintenanceDate,
-            status: asset.status,
-            components: asset.components,
-            schedules: asset.schedules,
-            workOrders: updateOrders
-        };
+        Asset updatedAsset = asset.clone();
+        updatedAsset.workOrders = updateOrders;
         _ = updateAsset(assetTag, updatedAsset);
         return updatedAsset;
     }
